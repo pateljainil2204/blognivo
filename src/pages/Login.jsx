@@ -6,7 +6,7 @@ import { BookOpen } from 'lucide-react';
 export default function Login() {
   const { user } = useAuth();
   
-  if (user) return <Navigate to="/" />;
+  if (user) return <Navigate to="/dashboard" />;
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">

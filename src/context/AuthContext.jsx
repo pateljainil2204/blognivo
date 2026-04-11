@@ -9,18 +9,15 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
-  // Prevent double-initialization from getSession + INITIAL_SESSION event
-  const initialized = useRef(false)
+  const [profileLoading, setProfileLoading] = useState(false)
   const profileFetchingRef = useRef(null)
 
-  const fetchProfile = async (userId, retryCount = 0) => {
-    // Deduplicate parallel fetches for the same user to prevent lock/race conditions
-    if (profileFetchingRef.current === userId && retryCount === 0) return
+  const fetchProfile = async (userId, authUserOrSessionUser = null) => {
+    if (profileFetchingRef.current === userId) return
     
     try {
-      if (retryCount === 0) {
-        profileFetchingRef.current = userId
-      }
+      profileFetchingRef.current = userId
+      setProfileLoading(true)
 
       const { data, error } = await supabase
         .from('users')
@@ -28,91 +25,66 @@ export function AuthProvider({ children }) {
         .eq('id', userId)
         .single()
 
-      if (error || !data) {
-        const { data: { user: authUser } } = await supabase.auth.getUser()
-        if (authUser && retryCount < 3) {
-          await new Promise(resolve => setTimeout(resolve, 500))
-          return await fetchProfile(userId, retryCount + 1)
-        }
+      if (!error && data) {
+        setProfile(data)
+      } else {
+        // Fallback: If no database profile, generate one from metadata
+        const authUser = authUserOrSessionUser || (await supabase.auth.getUser()).data?.user
         if (authUser) {
           setProfile({
             id: authUser.id,
-            name: authUser.user_metadata?.name || authUser.email.split('@')[0],
+            name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
             role: authUser.user_metadata?.role || 'user',
             email: authUser.email,
           })
-        } else {
-          setUser(null)
-          setProfile(null)
-          await supabase.auth.signOut()
         }
-      } else {
-        setProfile(data)
       }
     } catch (err) {
       console.error('Error fetching profile:', err)
-      if (retryCount === 0) {
-        setUser(null)
-        setProfile(null)
-      }
     } finally {
-      // Always unblock the UI after the top-level call finishes
-      if (retryCount === 0) {
-        setLoading(false)
-        profileFetchingRef.current = null
-      }
+      setLoading(false)
+      setProfileLoading(false)
+      profileFetchingRef.current = null
     }
   }
 
   useEffect(() => {
     let mounted = true
-
-    const initializeAuth = async () => {
-      // Safety timeout: Never stay in loading state for more than 10 seconds
-      const timeoutId = setTimeout(() => {
-        if (mounted && loading) {
-          console.warn('Auth initialization timed out, forcing unblock');
-          setLoading(false);
-          initialized.current = true;
-        }
-      }, 10000);
-
+    
+    const initialize = async () => {
       try {
-        // 1. Explicitly check for an existing session to unblock the UI immediately
         const { data: { session } } = await supabase.auth.getSession()
-        
         if (!mounted) return
         
-        if (session?.user) {
-          setUser(session.user)
-          await fetchProfile(session.user.id)
-        } else {
-          setLoading(false)
-        }
+        const currentUser = session?.user ?? null
+        setUser(currentUser)
         
-        initialized.current = true
-      } catch (err) {
-        console.error('Auth initialization failed:', err)
+        // Non-blocking: We set loading(false) immediately if we checked session
+        // This prevents the "blank page" hang.
+        setLoading(false)
+
+        if (currentUser) {
+          fetchProfile(currentUser.id, currentUser)
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
         if (mounted) setLoading(false)
-      } finally {
-        clearTimeout(timeoutId);
       }
     }
 
-    initializeAuth()
+    initialize()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        // Skip handling the INITIAL_SESSION event if we've already manually initialized
-        // or if it's the very first hit and initializeAuth is already running.
-        if (event === 'INITIAL_SESSION' && initialized.current) return
+        if (!mounted) return
         
         const currentUser = session?.user ?? null
         setUser(currentUser)
 
-        if (currentUser) {
-          await fetchProfile(currentUser.id)
-        } else {
+        if (event === 'SIGNED_IN') {
+          setLoading(false)
+          fetchProfile(currentUser.id, currentUser)
+        } else if (event === 'SIGNED_OUT') {
           setProfile(null)
           setLoading(false)
         }
@@ -145,16 +117,26 @@ export function AuthProvider({ children }) {
     setProfile(null)
   }
 
+  const deriveRole = (u, p) => {
+    // Priority: Database Profile > User Metadata > Default 'user'
+    if (p?.role) return p.role
+    if (u?.user_metadata?.role) return u.user_metadata.role
+    return 'user'
+  }
+
+  const role = deriveRole(user, profile)
+
   return (
     <AuthContext.Provider
       value={{
-        user, profile, loading,
+        user, profile, loading, profileLoading,
         signUp, signIn, signOut,
-        isAuthor: profile?.role === 'author' || profile?.role === 'admin',
-        isAdmin: profile?.role === 'admin',
+        role,
+        isAuthor: role === 'author' || role === 'admin',
+        isAdmin: role === 'admin',
       }}
     >
       {children}
     </AuthContext.Provider>
   )
-} 
+}
