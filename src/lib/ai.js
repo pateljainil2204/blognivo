@@ -1,34 +1,46 @@
 import { supabase } from './supabase' 
  
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL 
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
  
 async function callEdgeFunction(functionName, body) { 
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession() 
-  
-  if (sessionError) {
-    console.error('Session error:', sessionError)
-  }
-
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/${functionName}`, { 
-      method: 'POST', 
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Authorization': `Bearer ${session?.access_token || ''}`, 
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY, 
-      }, 
-      body: JSON.stringify(body), 
-    }) 
- 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.error || `AI Request failed (${res.status})`) 
+    console.log(`[ai.js] Initializing call to ${functionName}...`);
+    
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.error(`[ai.js] No active session found for ${functionName}.`);
+      throw new Error('Please login to use AI features');
+    }
+    console.log(`[ai.js] Authenticated session found. Calling function...`);
+
+    // supabase.functions.invoke handles apikey and Authorization headers automatically
+    const { data, error } = await supabase.functions.invoke(functionName, {
+      body: body
+    });
+
+    if (error) {
+      console.error(`[ai.js] Error from ${functionName}:`, error);
+      
+      const errorMessage = data?.error || error.message || `AI Request failed (Status: ${error.status})`;
+      
+      if (error.status === 401 || errorMessage.toLowerCase().includes('jwt') || errorMessage.toLowerCase().includes('unauthorized')) {
+        throw new Error('Please login to use AI features');
+      }
+      
+      throw new Error(errorMessage);
     }
 
-    return await res.json() 
+    if (data && data.error) {
+      console.error(`[ai.js] Handled API Error from ${functionName}:`, data.error);
+      throw new Error(data.error);
+    }
+
+    console.log(`[ai.js] Success from ${functionName}`);
+    return data;
   } catch (err) {
-    console.error(`Error calling ${functionName}:`, err)
-    throw err
+    console.error(`[ai.js] Exception in callEdgeFunction:`, err);
+    throw err;
   }
 } 
  

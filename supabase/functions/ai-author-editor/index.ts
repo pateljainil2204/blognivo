@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts" 
 declare const Deno: any;
-const GEMINI_KEY = Deno.env.get('GEMINI_API_KEY') 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}` 
+const OPENROUTER_KEY = Deno.env.get('OPENROUTER_API_KEY') 
+const OPENROUTER_URL = `https://openrouter.ai/api/v1/chat/completions` 
 
 const corsHeaders = { 
   'Access-Control-Allow-Origin': '*', 
@@ -20,16 +20,20 @@ const PROMPTS: Record<string, (content: string) => string> = {
 } 
  
 Deno.serve(async (req: Request) => { 
+  console.log(`AI Author Editor function called at ${new Date().toISOString()}`)
   if (req.method === 'OPTIONS') { 
     return new Response('ok', { headers: corsHeaders }) 
   } 
  
   try { 
+    const authHeader = req.headers.get('Authorization') 
+    console.log(`Auth header present: ${!!authHeader}`)
+
     const { content, action } = await req.json() 
  
-    if (!content || content.split('\n').length < 2) { 
+    if (!content || content.trim().length < 10) { 
       return new Response( 
-        JSON.stringify({ error: 'Content must be at least 2 lines' }), 
+        JSON.stringify({ error: 'Content is too short. Please write at least a sentence.' }), 
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } } 
       ) 
     } 
@@ -42,18 +46,43 @@ Deno.serve(async (req: Request) => {
       ) 
     } 
  
-    const geminiRes = await fetch(GEMINI_URL, { 
+    if (!OPENROUTER_KEY) {
+      console.error("OPENROUTER_API_KEY is not set in Edge Function secrets");
+      return new Response( 
+        JSON.stringify({ error: 'AI provider configuration missing (OPENROUTER_API_KEY)' }), 
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } } 
+      ) 
+    }
+
+    const aiRes = await fetch(OPENROUTER_URL, { 
       method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENROUTER_KEY}`
+      }, 
       body: JSON.stringify({ 
-        contents: [{ parts: [{ text: promptFn(content) }] }], 
-        generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }, 
+        model: "openrouter/free", 
+        messages: [{ role: "user", content: promptFn(content) }] 
       }), 
     }) 
+
+    if (!aiRes.ok) {
+      const errBody = await aiRes.json().catch(() => ({}));
+      console.error(`OpenRouter error (${aiRes.status}):`, errBody);
+      return new Response( 
+        JSON.stringify({ error: `AI service error: ${errBody?.error?.message || 'Unknown provider error'}` }), 
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } } 
+      ) 
+    }
  
-    const geminiData = await geminiRes.json() 
-    const result = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '' 
+    const aiData = await aiRes.json() 
+    let result = aiData?.choices?.[0]?.message?.content || '' 
  
+    // If Gemini still returned markdown-style code blocks for plain text, clean it
+    if (result.includes('```')) {
+       result = result.replace(/```[a-z]*\n?/gi, '').replace(/\n?```/g, '').trim();
+    }
+
     if (!result) { 
       return new Response( 
         JSON.stringify({ error: 'AI returned empty response. Try again.' }), 
@@ -68,7 +97,7 @@ Deno.serve(async (req: Request) => {
   } catch (err) { 
     return new Response( 
       JSON.stringify({ error: 'AI service temporarily unavailable' }), 
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } } 
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } } 
     ) 
   } 
 })

@@ -70,7 +70,8 @@ export default function BlogPage() {
 
       // Increment views only for approved blogs
       if (data.status === 'approved') {
-        await supabase.rpc('increment_views', { blog_id: id }).catch(() => {});
+        const { error: rpcError } = await supabase.rpc('increment_views', { blog_id: id });
+        if (rpcError) console.warn('Views increment failed:', rpcError);
       }
 
       // Check user interactions after blog is confirmed loaded
@@ -226,7 +227,13 @@ export default function BlogPage() {
             
             {!aiResult && (
               <button
-                onClick={() => summarize(id)}
+                onClick={() => {
+                  if (!user) {
+                    toast.error('Please login to generate AI insights');
+                    return;
+                  }
+                  summarize(id);
+                }}
                 disabled={loadingAI}
                 className="btn-premium flex items-center gap-2 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-100 shadow-sm"
               >
