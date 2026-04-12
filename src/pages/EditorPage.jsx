@@ -26,8 +26,32 @@ export default function EditorPage() {
 
   useEffect(() => {
     fetchCategories();
-    if (id) fetchBlog();
+    if (id) {
+      fetchBlog();
+    } else {
+      // Auto-restore unsaved draft from local storage for new posts
+      const savedDraft = localStorage.getItem('blognivo_unsaved_draft');
+      if (savedDraft) {
+        try {
+          const parsed = JSON.parse(savedDraft);
+          if (parsed.title) setTitle(parsed.title);
+          if (parsed.content) setContent(parsed.content);
+          if (parsed.category) setCategory(parsed.category);
+          if (parsed.tags) setTags(parsed.tags);
+        } catch (e) {
+          console.error('Failed to parse local draft', e);
+        }
+      }
+    }
   }, [id]);
+
+  // Auto-save to local storage whenever they type (only for new unsaved drafts)
+  useEffect(() => {
+    if (!id && (title || content || category !== 'Technology' || tags.length > 0)) {
+      const draftData = { title, content, category, tags };
+      localStorage.setItem('blognivo_unsaved_draft', JSON.stringify(draftData));
+    }
+  }, [title, content, category, tags, id]);
 
   const fetchCategories = async () => {
     const { data } = await supabase.from('categories').select('name');
@@ -124,6 +148,9 @@ export default function EditorPage() {
         toast.error(`Failed to save: ${result.error.message || 'Unknown error'}`);
         return;
       }
+
+      // Clear local storage since it's now safely in the database
+      localStorage.removeItem('blognivo_unsaved_draft');
 
       if (isDraft) {
         toast.success('Draft saved!');

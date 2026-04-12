@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ai } from '../../lib/ai';
-import { Sparkles, Check, Type, RefreshCw, Tags, Search, Expand, Loader2 } from 'lucide-react';
+import { Sparkles, Check, Type, RefreshCw, Tags, Search, Expand, Loader2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const AI_ACTIONS = [
