@@ -190,20 +190,26 @@ export default function EditorPage() {
     }
   };
 
-  if (loading) return <div className="max-w-4xl mx-auto p-12 text-center text-slate-400 font-black animate-pulse uppercase tracking-widest">Loading Editor...</div>;
+  if (loading) return (
+    <div className="max-w-4xl mx-auto p-12 text-center relative z-10 w-full overflow-hidden">
+      <div className="text-gray-500 font-black animate-pulse uppercase tracking-widest text-lg">Loading Editor...</div>
+    </div>
+  );
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
-      <div className="flex items-center gap-4 mb-8">
-        <Link to="/dashboard" className="inline-flex items-center gap-2 text-slate-400 hover:text-blue-600 font-bold text-sm uppercase tracking-widest transition-colors group">
+    <div className="max-w-5xl mx-auto px-4 py-12 relative z-10 w-full">
+      <div className="absolute top-0 right-0 -mr-64 -mt-32 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none -z-10"></div>
+      
+      <div className="flex flex-wrap items-center gap-4 mb-8">
+        <Link to="/dashboard" className="inline-flex items-center gap-2 text-gray-400 hover:text-indigo-400 font-bold text-sm uppercase tracking-widest transition-colors group">
           <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" /> Dashboard
         </Link>
         {originalStatus && (
           <span className={`ml-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-            originalStatus === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
-            originalStatus === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-            originalStatus === 'approved' ? 'bg-green-50 text-green-700 border-green-200' :
-            'bg-slate-100 text-slate-600 border-slate-200'
+            originalStatus === 'rejected' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+            originalStatus === 'pending' ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' :
+            originalStatus === 'approved' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+            'bg-white/10 text-gray-400 border-white/20'
           }`}>
             {originalStatus}
           </span>
@@ -212,17 +218,17 @@ export default function EditorPage() {
 
       {/* Rejection Banner */}
       {originalStatus === 'rejected' && (
-        <div className="mb-8 p-5 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-4">
-          <div className="p-2 bg-red-100 rounded-xl text-red-600 shrink-0">
+        <div className="mb-8 p-5 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-4 backdrop-blur-md">
+          <div className="p-2 bg-red-500/20 rounded-xl text-red-400 shrink-0">
             <AlertTriangle size={20} />
           </div>
           <div>
-            <p className="text-sm font-black text-red-900 mb-1">This article was rejected</p>
+            <p className="text-sm font-black text-red-300 mb-1">This article was rejected</p>
             {rejectionReason
-              ? <p className="text-sm text-red-700 leading-relaxed">Reason: <span className="italic">{rejectionReason}</span></p>
-              : <p className="text-sm text-red-600 opacity-70">No specific reason was provided. Please review and improve your content before resubmitting.</p>
+              ? <p className="text-sm text-red-400 leading-relaxed">Reason: <span className="italic">{rejectionReason}</span></p>
+              : <p className="text-sm text-red-500 opacity-70">No specific reason was provided. Please review and improve your content before resubmitting.</p>
             }
-            <p className="text-xs text-red-500 font-bold mt-2 uppercase tracking-widest">Edit your article and click "Publish Article" to resubmit for review.</p>
+            <p className="text-xs text-red-400/80 font-bold mt-2 uppercase tracking-widest">Edit your article and click "Publish Article" to resubmit for review.</p>
           </div>
         </div>
       )}

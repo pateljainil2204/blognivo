@@ -22,33 +22,33 @@ export default function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-1">
-        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Email Address</label>
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-1.5">
+        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">Email Address</label>
         <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
           <input
             type="email"
             required
             placeholder="name@company.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pl-10 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 pl-12 focus:ring-1 focus:ring-indigo-500/50 outline-none transition text-white placeholder-gray-600"
           />
         </div>
       </div>
 
-      <div className="space-y-1">
-        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Password</label>
+      <div className="space-y-1.5">
+        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">Password</label>
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
           <input
             type="password"
             required
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pl-10 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 pl-12 focus:ring-1 focus:ring-indigo-500/50 outline-none transition text-white placeholder-gray-600"
           />
         </div>
       </div>
@@ -56,7 +56,7 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="btn-primary w-full flex items-center justify-center gap-2 py-3 mt-6 group"
+        className="btn-primary w-full flex items-center justify-center gap-2 py-3.5 mt-8 group text-base"
       >
         {loading ? <Loader2 className="animate-spin" size={20} /> : (
           <>

@@ -139,10 +139,11 @@ export default function AdminDashboard() {
 
   if (!user || !isAdmin) {
     return (
-      <div className="flex flex-col items-center justify-center p-20 text-center">
-        <Shield size={64} className="text-red-500 mb-6 opacity-20" />
-        <h2 className="text-3xl font-black text-slate-900 tracking-tight">Access Denied</h2>
-        <p className="text-slate-500 mt-2">Only authorized administrators can access this terminal.</p>
+      <div className="flex flex-col items-center justify-center p-20 text-center relative z-10">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-500/10 rounded-full blur-[80px] pointer-events-none -z-10"></div>
+        <Shield size={64} className="text-red-500 mb-6 opacity-30 shadow-red-500/20 drop-shadow-2xl" />
+        <h2 className="text-3xl font-black text-white tracking-tight">Access Denied</h2>
+        <p className="text-gray-400 mt-3 font-medium">Only authorized administrators can access this terminal.</p>
       </div>
     );
   }
@@ -152,22 +153,22 @@ export default function AdminDashboard() {
       label: 'Total Users',
       value: platformStats.totalUsers,
       icon: <Users size={22} />,
-      bg: 'from-blue-50/80 to-white',
-      iconBg: 'bg-blue-100 text-blue-600',
+      bg: 'bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-500/20',
+      iconBg: 'bg-indigo-500/20 text-indigo-400',
     },
     {
       label: 'Total Blogs',
       value: platformStats.totalBlogs,
       icon: <BarChart2 size={22} />,
-      bg: 'from-slate-50/80 to-white',
-      iconBg: 'bg-slate-100 text-slate-600',
+      bg: 'bg-white/5 hover:bg-white/10 border-white/10',
+      iconBg: 'bg-white/10 text-gray-300',
     },
     {
       label: 'Pending Review',
       value: platformStats.pending,
       icon: <Clock size={22} />,
-      bg: 'from-yellow-50/80 to-white',
-      iconBg: 'bg-yellow-100 text-yellow-600',
+      bg: 'bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/20',
+      iconBg: 'bg-yellow-500/20 text-yellow-400',
       onClick: () => { setActiveTab('blogs'); setFilterStatus('pending'); },
       highlight: platformStats.pending > 0,
     },
@@ -175,36 +176,38 @@ export default function AdminDashboard() {
       label: 'Approved',
       value: platformStats.approved,
       icon: <CheckCircle size={22} />,
-      bg: 'from-green-50/80 to-white',
-      iconBg: 'bg-green-100 text-green-600',
+      bg: 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20',
+      iconBg: 'bg-emerald-500/20 text-emerald-400',
       onClick: () => { setActiveTab('blogs'); setFilterStatus('approved'); },
     },
     {
       label: 'Rejected',
       value: platformStats.rejected,
       icon: <XCircle size={22} />,
-      bg: 'from-red-50/80 to-white',
-      iconBg: 'bg-red-100 text-red-600',
+      bg: 'bg-red-500/10 hover:bg-red-500/20 border-red-500/20',
+      iconBg: 'bg-red-500/20 text-red-400',
       onClick: () => { setActiveTab('blogs'); setFilterStatus('rejected'); },
     },
     {
       label: 'Drafts',
       value: platformStats.draft,
       icon: <Eye size={22} />,
-      bg: 'from-purple-50/80 to-white',
-      iconBg: 'bg-purple-100 text-purple-600',
+      bg: 'bg-cyan-500/10 hover:bg-cyan-500/20 border-cyan-500/20',
+      iconBg: 'bg-cyan-500/20 text-cyan-400',
       onClick: () => { setActiveTab('blogs'); setFilterStatus('draft'); },
     },
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="max-w-7xl mx-auto px-4 py-12 relative z-10 w-full">
+      <div className="absolute top-0 left-0 -ml-32 -mt-32 w-[600px] h-[600px] bg-red-500/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
+
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-             <Shield className="text-blue-600" size={32} /> Central Authority
+          <h1 className="text-4xl font-black text-white tracking-tight flex items-center gap-3">
+             <Shield className="text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]" size={32} /> Central Authority
           </h1>
-          <p className="text-slate-500 font-medium mt-2">Manage the BlogNivo ecosystem, content moderation, and user roles.</p>
+          <p className="text-gray-400 font-medium mt-2">Manage the platform ecosystem, content moderation, and user roles.</p>
         </div>
       </div>
 
@@ -214,42 +217,42 @@ export default function AdminDashboard() {
           <div
             key={card.label}
             onClick={card.onClick}
-            className={`card-premium p-5 flex flex-col gap-3 bg-gradient-to-br ${card.bg} ${card.onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''} ${card.highlight ? 'ring-2 ring-yellow-300 ring-offset-1' : ''}`}
+            className={`glass p-5 flex flex-col gap-3 border transition-colors relative overflow-hidden ${card.bg} ${card.onClick ? 'cursor-pointer hover:-translate-y-1' : ''} ${card.highlight ? 'ring-2 ring-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.3)]' : ''}`}
           >
             <div className={`p-2.5 rounded-xl w-fit ${card.iconBg}`}>
               {card.icon}
             </div>
             {statsLoading
-              ? <div className="h-7 w-14 bg-slate-100 rounded-lg animate-pulse" />
-              : <p className="text-2xl font-black text-slate-900 tracking-tighter">{card.value}</p>
+              ? <div className="h-8 w-14 bg-white/10 rounded-lg animate-pulse mt-1" />
+              : <p className="text-3xl font-black text-white tracking-tighter mt-1">{card.value}</p>
             }
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">{card.label}</p>
+            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-tight">{card.label}</p>
           </div>
         ))}
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex bg-slate-100 p-1 rounded-2xl mb-8 w-fit">
+      <div className="flex bg-white/5 p-1 rounded-2xl mb-8 w-fit border border-white/5 shadow-lg">
         <button
           onClick={() => setActiveTab('blogs')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
-            activeTab === 'blogs' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all ${
+            activeTab === 'blogs' ? 'bg-indigo-500/20 text-indigo-300 shadow-sm border border-indigo-500/30' : 'text-gray-500 hover:text-white hover:bg-white/5 border border-transparent'
           }`}
         >
           <LayoutDashboard size={18} /> Content Moderation
         </button>
         <button
           onClick={() => setActiveTab('users')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
-            activeTab === 'users' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all ${
+            activeTab === 'users' ? 'bg-indigo-500/20 text-indigo-300 shadow-sm border border-indigo-500/30' : 'text-gray-500 hover:text-white hover:bg-white/5 border border-transparent'
           }`}
         >
           <Users size={18} /> User Management
         </button>
         <button
           onClick={() => setActiveTab('analytics')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
-            activeTab === 'analytics' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all ${
+            activeTab === 'analytics' ? 'bg-indigo-500/20 text-indigo-300 shadow-sm border border-indigo-500/30' : 'text-gray-500 hover:text-white hover:bg-white/5 border border-transparent'
           }`}
         >
           <Tag size={18} /> Category Analytics
@@ -258,29 +261,29 @@ export default function AdminDashboard() {
 
       {activeTab === 'blogs' && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between bg-slate-50 p-4 rounded-3xl border border-slate-100">
-            <div className="flex items-center gap-4">
-              <span className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Filter By:</span>
-              <div className="flex gap-2">
+          <div className="flex items-center justify-between bg-white/5 p-4 rounded-3xl border border-white/10 shadow-lg">
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="text-xs font-black text-gray-500 uppercase tracking-widest pl-2 hidden sm:inline-block">Filter By:</span>
+              <div className="flex flex-wrap gap-2">
                 {['pending', 'approved', 'rejected', 'draft'].map((s) => (
                   <button
                     key={s}
                     onClick={() => setFilterStatus(s)}
-                    className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                    className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${
                       filterStatus === s 
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' 
-                        : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'
+                        ? 'bg-indigo-600 text-white border-transparent shadow-lg shadow-indigo-500/30' 
+                        : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border-white/10'
                     }`}
                   >
                     {s}
                     {s === 'pending' && platformStats.pending > 0 && (
-                      <span className="ml-1.5 bg-yellow-400 text-yellow-900 rounded-full px-1 text-[8px]">{platformStats.pending}</span>
+                      <span className="ml-2 bg-yellow-500 text-yellow-950 rounded-full px-1.5 py-0.5 text-[8px]">{platformStats.pending}</span>
                     )}
                   </button>
                 ))}
               </div>
             </div>
-            <div className="hidden md:flex items-center gap-2 text-slate-400 font-bold text-xs pr-2">
+            <div className="hidden md:flex items-center gap-2 text-indigo-400 font-bold text-xs pr-4 bg-indigo-500/10 px-4 py-2 rounded-xl border border-indigo-500/20">
               <BarChart2 size={16} /> {blogs.length} Articles Found
             </div>
           </div>
@@ -308,33 +311,33 @@ export default function AdminDashboard() {
       {activeTab === 'analytics' && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-black text-slate-900 mb-6 tracking-tight">Category Performance (Approved Blogs)</h2>
+            <h2 className="text-xl font-black text-white mb-6 tracking-tight">Category Performance (Approved Blogs)</h2>
             {loading ? (
               <div className="space-y-3">
-                {[1,2,3,4,5].map(i => <div key={i} className="h-14 bg-slate-50 rounded-2xl animate-pulse" />)}
+                {[1,2,3,4,5].map(i => <div key={i} className="h-20 bg-white/5 rounded-2xl animate-pulse border border-white/10" />)}
               </div>
             ) : categoryStats.length === 0 ? (
-              <div className="text-center py-20 bg-slate-50 border border-dashed border-slate-200 rounded-3xl text-slate-400 font-medium">
+              <div className="text-center py-20 bg-white/5 border border-dashed border-white/10 rounded-[2rem] text-gray-500 font-medium">
                 No approved blogs yet.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 max-w-4xl">
                 {categoryStats.map((cat, idx) => {
                   const maxCount = categoryStats[0]?.count || 1;
                   const pct = (cat.count / maxCount) * 100;
                   return (
-                    <div key={cat.category} className="card-premium p-5 flex items-center gap-5">
-                      <span className="text-[10px] font-black text-slate-400 w-5 shrink-0">#{idx + 1}</span>
+                    <div key={cat.category} className="glass p-5 flex items-center gap-5 border border-white/5 hover:bg-white/5 transition-colors rounded-2xl">
+                      <span className="text-[10px] font-black text-gray-600 w-5 shrink-0 bg-white/5 rounded px-1.5 py-1 text-center">#{idx + 1}</span>
                       <div className="w-40 shrink-0">
-                        <p className="text-sm font-black text-slate-900 truncate">{cat.category}</p>
+                        <p className="text-sm font-black text-white truncate">{cat.category}</p>
                       </div>
-                      <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                      <div className="flex-1 bg-white/5 rounded-full h-3 overflow-hidden border border-white/5">
                         <div
-                          className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-700"
+                          className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-1000 ease-out"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <span className="text-sm font-black text-slate-700 w-10 text-right shrink-0">{cat.count}</span>
+                      <span className="text-sm font-black text-indigo-300 w-12 text-right shrink-0 bg-indigo-500/10 px-2 py-1 rounded-lg border border-indigo-500/20">{cat.count}</span>
                     </div>
                   );
                 })}

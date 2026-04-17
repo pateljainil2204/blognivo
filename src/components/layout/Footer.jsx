@@ -3,61 +3,61 @@ import { BookOpen, Globe, Share2, MessageSquare } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="bg-white border-t mt-20">
+    <footer className="bg-slate-950 border-t border-white/5 mt-20 relative z-10">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
-            <Link to="/" className="text-2xl font-black text-blue-600 flex items-center gap-2 mb-4">
-              <div className="p-1.5 bg-blue-600 text-white rounded-lg">
+            <Link to="/" className="text-2xl font-black text-white flex items-center gap-2 mb-4 group">
+              <div className="p-1.5 bg-gradient-to-br from-indigo-500 to-purple-500 text-white rounded-lg shadow-lg shadow-indigo-500/20 transition-transform group-hover:scale-105">
                 <BookOpen size={20} />
               </div>
-              <span className="tracking-tighter">BlogNivo</span>
+              <span className="tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">BlogNivo</span>
             </Link>
-            <p className="text-slate-500 max-w-sm mb-6">
+            <p className="text-gray-400 max-w-sm mb-6 leading-relaxed">
               Empowering creators with AI-driven insights and a seamless writing experience. Join our community of thought leaders today.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition">
+              <a href="#" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-white/10 hover:text-indigo-400 transition border border-white/5">
                 <Share2 size={16} />
               </a>
-              <a href="#" className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition">
+              <a href="#" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-white/10 hover:text-indigo-400 transition border border-white/5">
                 <Globe size={16} />
               </a>
-              <a href="#" className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition">
+              <a href="#" className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-white/10 hover:text-indigo-400 transition border border-white/5">
                 <MessageSquare size={16} />
               </a>
             </div>
           </div>
           
           <div>
-            <h4 className="font-bold text-slate-900 mb-4">Platform</h4>
-            <ul className="space-y-2 text-sm text-slate-500">
-              <li><Link to="/" className="hover:text-blue-600 transition">Explore Blogs</Link></li>
-              <li><Link to="/editor" className="hover:text-blue-600 transition">Start Writing</Link></li>
-              <li><Link to="/dashboard" className="hover:text-blue-600 transition">Author Dashboard</Link></li>
-              <li><Link to="/signup" className="hover:text-blue-600 transition">Join Community</Link></li>
+            <h4 className="font-bold text-white mb-4 tracking-wide">Platform</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li><Link to="/" className="hover:text-indigo-400 transition">Explore Blogs</Link></li>
+              <li><Link to="/editor" className="hover:text-indigo-400 transition">Start Writing</Link></li>
+              <li><Link to="/dashboard" className="hover:text-indigo-400 transition">Author Dashboard</Link></li>
+              <li><Link to="/signup" className="hover:text-indigo-400 transition">Join Community</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold text-slate-900 mb-4">Company</h4>
-            <ul className="space-y-2 text-sm text-slate-500">
-              <li><a href="#" className="hover:text-blue-600 transition">About Us</a></li>
-              <li><a href="#" className="hover:text-blue-600 transition">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-blue-600 transition">Terms of Service</a></li>
-              <li><a href="#" className="hover:text-blue-600 transition">Contact Support</a></li>
+            <h4 className="font-bold text-white mb-4 tracking-wide">Company</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li><a href="#" className="hover:text-indigo-400 transition">About Us</a></li>
+              <li><a href="#" className="hover:text-indigo-400 transition">Privacy Policy</a></li>
+              <li><a href="#" className="hover:text-indigo-400 transition">Terms of Service</a></li>
+              <li><a href="#" className="hover:text-indigo-400 transition">Contact Support</a></li>
             </ul>
           </div>
         </div>
         
-        <div className="mt-12 pt-8 border-t border-slate-100 flex flex-col md:row items-center justify-between gap-4">
-          <p className="text-xs text-slate-400">
+        <div className="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-gray-500">
             © {new Date().getFullYear()} BlogNivo AI. All rights reserved.
           </p>
-          <div className="flex gap-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            <a href="#" className="hover:text-slate-600">Status</a>
-            <a href="#" className="hover:text-slate-600">APIs</a>
-            <a href="#" className="hover:text-slate-600">Cookies</a>
+          <div className="flex gap-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+            <a href="#" className="hover:text-gray-300 transition">Status</a>
+            <a href="#" className="hover:text-gray-300 transition">APIs</a>
+            <a href="#" className="hover:text-gray-300 transition">Cookies</a>
           </div>
         </div>
       </div>

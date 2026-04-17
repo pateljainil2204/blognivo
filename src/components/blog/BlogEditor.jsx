@@ -15,24 +15,24 @@ export default function BlogEditor({
     <div className="space-y-10 animate-in fade-in duration-500">
       {/* Cover Image */}
       <div className="relative group">
-        <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-4">Cover Image</label>
+        <label className="text-xs font-black text-gray-500 uppercase tracking-widest block mb-4">Cover Image</label>
         {coverUrl ? (
-          <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-blue-500/10">
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-indigo-500/10 border border-white/10">
             <img src={coverUrl} alt="Cover" className="w-full h-80 object-cover" />
             <button
               onClick={removeImage}
-              className="absolute top-4 right-4 bg-white/90 backdrop-blur rounded-full p-2 text-red-500 hover:bg-white transition shadow-lg"
+              className="absolute top-4 right-4 bg-black/50 backdrop-blur-md rounded-full p-2 text-red-400 hover:text-red-300 hover:bg-black/70 transition shadow-lg border border-white/10"
             >
               <X size={20} />
             </button>
           </div>
         ) : (
-          <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-slate-200 rounded-3xl cursor-pointer hover:bg-slate-50 hover:border-blue-300 transition-all group">
-            <div className="flex flex-col items-center gap-2 text-slate-400 group-hover:text-blue-500">
-              <div className="p-4 bg-slate-50 rounded-2xl group-hover:bg-blue-50 transition">
+          <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-white/10 rounded-3xl cursor-pointer bg-white/5 hover:bg-white/10 hover:border-indigo-500/30 transition-all group">
+            <div className="flex flex-col items-center gap-2 text-gray-500 group-hover:text-indigo-400">
+              <div className="p-4 bg-white/5 rounded-2xl group-hover:bg-indigo-500/20 transition">
                 <Image size={32} />
               </div>
-              <p className="font-bold text-sm tracking-tight">Click to upload high-res cover</p>
+              <p className="font-bold text-sm tracking-tight text-gray-300">Click to upload high-res cover</p>
               <p className="text-xs opacity-60">PNG, JPG or WEBP (Max 5MB)</p>
             </div>
             <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
@@ -43,24 +43,24 @@ export default function BlogEditor({
       {/* Main Metadata */}
       <div className="grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-2">
-          <label className="text-xs font-black text-slate-400 uppercase tracking-widest block pl-1">Article Title</label>
+          <label className="text-xs font-black text-gray-500 uppercase tracking-widest block pl-1">Article Title</label>
           <input
             type="text"
             placeholder="A catchy, SEO-friendly title..."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full text-3xl font-black bg-transparent border-0 border-b-2 border-slate-100 pb-2 outline-none focus:border-blue-600 transition-colors placeholder:text-slate-200"
+            className="w-full text-3xl md:text-4xl font-black bg-transparent border-0 border-b-2 border-white/10 pb-3 outline-none focus:border-indigo-500 transition-colors placeholder:text-white/20 text-white"
           />
         </div>
         <div className="space-y-2">
-          <label className="text-xs font-black text-slate-400 uppercase tracking-widest block pl-1">Topic Category</label>
+          <label className="text-xs font-black text-gray-500 uppercase tracking-widest block pl-1">Topic Category</label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition"
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-gray-300 font-medium outline-none focus:ring-1 focus:ring-indigo-500/50 transition appearance-none"
           >
             {categories.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c} className="bg-slate-900 text-gray-300">{c}</option>
             ))}
           </select>
         </div>
@@ -68,16 +68,16 @@ export default function BlogEditor({
 
       {/* Tags */}
       <div className="space-y-2">
-        <label className="text-xs font-black text-slate-400 uppercase tracking-widest block pl-1">Tags (Max 5)</label>
+        <label className="text-xs font-black text-gray-500 uppercase tracking-widest block pl-1">Tags (Max 5)</label>
         <div className="flex flex-wrap gap-2 mb-3">
           {tags.map((tag) => (
             <span
               key={tag}
-              className="bg-blue-50 text-blue-700 font-bold px-3 py-1.5 rounded-xl text-[10px] uppercase tracking-wider flex items-center gap-1.5 shadow-sm"
+              className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold px-3 py-1.5 rounded-xl text-[10px] uppercase tracking-wider flex items-center gap-1.5 shadow-sm"
             >
               <Hash size={10} />
               {tag}
-              <button onClick={() => setTags(tags.filter((t) => t !== tag))} className="hover:text-red-500">
+              <button onClick={() => setTags(tags.filter((t) => t !== tag))} className="hover:text-red-400">
                 <X size={10} />
               </button>
             </span>
@@ -96,11 +96,11 @@ export default function BlogEditor({
               }
             }
           }}
-          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition"
+          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-indigo-500/50 outline-none transition text-white placeholder:text-gray-600"
         />
       </div>
 
-      <div className="h-px bg-slate-100" />
+      <div className="h-px bg-white/10 my-8" />
 
       {/* Content Section */}
       <div className="space-y-4">
@@ -116,13 +116,13 @@ export default function BlogEditor({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           rows={25}
-          className="w-full bg-white border border-slate-100 rounded-3xl p-8 text-lg text-slate-700 leading-relaxed outline-none focus:ring-4 focus:ring-blue-500/5 transition-all shadow-sm font-serif"
+          className="w-full bg-white/5 border border-white/10 rounded-3xl p-8 text-lg text-gray-300 leading-relaxed outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all shadow-lg custom-scrollbar font-sans"
         />
       </div>
 
       {/* Action Footer */}
-      <div className="sticky bottom-8 glass p-4 rounded-2xl flex items-center justify-between border border-slate-200/50 shadow-2xl">
-        <div className="hidden sm:flex items-center gap-2 text-slate-400 text-xs font-medium">
+      <div className="sticky bottom-8 glass p-4 rounded-2xl flex items-center justify-between border border-white/10 shadow-2xl">
+        <div className="hidden sm:flex items-center gap-2 text-gray-400 text-xs font-medium">
           <Loader2 size={12} className={saving ? 'animate-spin' : 'hidden'} />
           {saving ? 'Saving changes...' : 'All changes saved locally'}
         </div>
@@ -130,14 +130,14 @@ export default function BlogEditor({
           <button
             onClick={onSave}
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-gray-400 hover:text-white transition-colors disabled:opacity-50"
           >
             <Save size={18} /> Save as Draft
           </button>
           <button
             onClick={onPublish}
             disabled={saving}
-            className="btn-primary flex items-center gap-2"
+            className="btn-primary py-2.5 flex items-center justify-center gap-2 text-sm"
           >
             {saving ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
             {isResubmit ? 'Resubmit for Review' : 'Publish Article'}

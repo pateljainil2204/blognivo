@@ -146,43 +146,43 @@ export default function BlogPage() {
   };
 
   if (loading) return (
-    <div className="max-w-3xl mx-auto p-4 py-20 animate-pulse">
-      <div className="h-8 w-24 bg-slate-100 rounded-full mb-8" />
-      <div className="h-12 bg-slate-100 rounded-2xl mb-6" />
-      <div className="h-64 bg-slate-50 rounded-3xl mb-10" />
+    <div className="max-w-3xl mx-auto p-4 py-20 animate-pulse relative z-10">
+      <div className="h-8 w-24 bg-white/10 rounded-full mb-8" />
+      <div className="h-12 bg-white/10 rounded-2xl mb-6" />
+      <div className="h-64 bg-white/5 border border-white/10 rounded-3xl mb-10" />
       <div className="space-y-4">
-        <div className="h-4 bg-slate-50 w-full" />
-        <div className="h-4 bg-slate-50 w-5/6" />
-        <div className="h-4 bg-slate-50 w-4/6" />
+        <div className="h-4 bg-white/5 w-full rounded" />
+        <div className="h-4 bg-white/5 w-5/6 rounded" />
+        <div className="h-4 bg-white/5 w-4/6 rounded" />
       </div>
     </div>
   );
 
   if (notFound) return (
-    <div className="max-w-md mx-auto text-center py-32">
+    <div className="max-w-md mx-auto text-center py-32 z-10 relative">
       <div className="text-6xl mb-6">📄</div>
-      <h2 className="text-2xl font-black text-slate-900 mb-3">Article Not Found</h2>
-      <p className="text-slate-500 mb-8">This article doesn't exist or has been removed.</p>
-      <Link to="/" className="btn-primary">Back to Home</Link>
+      <h2 className="text-2xl font-black text-white mb-3 tracking-tight">Article Not Found</h2>
+      <p className="text-gray-400 mb-8 font-medium">This article doesn't exist or has been removed.</p>
+      <Link to="/" className="btn-primary">Back to Explore</Link>
     </div>
   );
 
   if (restricted) return (
-    <div className="max-w-md mx-auto text-center py-32">
-      <div className="w-24 h-24 bg-yellow-50 rounded-full flex items-center justify-center mx-auto mb-6">
-        <Lock size={40} className="text-yellow-500" />
+    <div className="max-w-md mx-auto text-center py-32 z-10 relative">
+      <div className="w-24 h-24 bg-yellow-500/10 border border-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-yellow-500/5">
+        <Lock size={40} className="text-yellow-400" />
       </div>
-      <h2 className="text-2xl font-black text-slate-900 mb-3">Not Available Yet</h2>
-      <p className="text-slate-500 mb-8">This article is pending review and isn't public yet. Check back soon!</p>
+      <h2 className="text-2xl font-black text-white mb-3 tracking-tight">Not Available Yet</h2>
+      <p className="text-gray-400 mb-8 font-medium">This article is pending review and isn't public yet. Check back soon!</p>
       <Link to="/" className="btn-primary">Explore Other Articles</Link>
     </div>
   );
 
   if (!blog && !loading) {
     return (
-      <div className="max-w-md mx-auto text-center py-32">
-        <h2 className="text-2xl font-black text-slate-900 mb-3">Something Went Wrong</h2>
-        <p className="text-slate-500 mb-8">We couldn't load the blog content. Please try refreshing.</p>
+      <div className="max-w-md mx-auto text-center py-32 z-10 relative">
+        <h2 className="text-2xl font-black text-white mb-3 tracking-tight">Something Went Wrong</h2>
+        <p className="text-gray-400 mb-8 font-medium">We couldn't load the blog content. Please try refreshing.</p>
         <button onClick={() => window.location.reload()} className="btn-primary">Refresh Page</button>
       </div>
     );
@@ -191,8 +191,10 @@ export default function BlogPage() {
   if (!blog) return null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <Link to="/" className="inline-flex items-center gap-2 text-slate-400 hover:text-blue-600 font-bold text-sm uppercase tracking-widest mb-10 transition-colors group">
+    <div className="max-w-4xl mx-auto px-4 py-12 relative z-10">
+      <div className="absolute top-0 right-0 -mr-64 -mt-32 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+      
+      <Link to="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-indigo-400 font-bold text-sm uppercase tracking-widest mb-10 transition-colors group">
         <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" /> Back to Explore
       </Link>
 
@@ -200,10 +202,10 @@ export default function BlogPage() {
       {blog.status !== 'approved' && (
         <div className={`mb-8 px-6 py-4 rounded-2xl border text-sm font-bold flex items-center gap-3 ${
           blog.status === 'pending'
-            ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+            ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300 shadow-yellow-500/5'
             : blog.status === 'rejected'
-            ? 'bg-red-50 border-red-200 text-red-800'
-            : 'bg-slate-50 border-slate-200 text-slate-600'
+            ? 'bg-red-500/10 border-red-500/30 text-red-300 shadow-red-500/5'
+            : 'bg-white/5 border-white/10 text-gray-300 shadow-white/5'
         }`}>
           <span className="uppercase tracking-widest text-[10px] font-black opacity-60">Status:</span>
           <span className="capitalize">{blog.status}</span>
@@ -211,7 +213,7 @@ export default function BlogPage() {
             <span className="ml-2 font-normal opacity-80">— {blog.ai_reason}</span>
           )}
           {blog.status !== 'approved' && (
-            <Link to={`/editor/${blog.id}`} className="ml-auto text-[10px] uppercase tracking-widest font-black underline underline-offset-2">
+            <Link to={`/editor/${blog.id}`} className="ml-auto text-[10px] uppercase tracking-widest font-black underline underline-offset-2 hover:text-white">
               Edit Article →
             </Link>
           )}
@@ -235,9 +237,9 @@ export default function BlogPage() {
                   summarize(id);
                 }}
                 disabled={loadingAI}
-                className="btn-premium flex items-center gap-2 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-100 shadow-sm"
+                className="btn-premium w-full md:w-auto flex items-center justify-center gap-2 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20 border border-indigo-500/30 shadow-lg shadow-indigo-500/10"
               >
-                {loadingAI ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                {loadingAI ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} className="text-purple-400" />}
                 Generate AI Insights
               </button>
             )}
@@ -245,13 +247,13 @@ export default function BlogPage() {
         </div>
 
         {/* Floating Actions Sidebar */}
-        <aside className="lg:w-20">
-          <div className="lg:sticky lg:top-32 flex lg:flex-col items-center justify-center gap-4 bg-white p-2 border border-slate-100 rounded-full shadow-2xl">
+        <aside className="lg:w-20 lg:shrink-0 relative z-20">
+          <div className="glass lg:sticky lg:top-32 flex lg:flex-col items-center justify-center gap-4 p-3 border border-white/10 rounded-full shadow-2xl">
             <button
               onClick={handleToggleLike}
               title={liked ? 'Unlike' : 'Like'}
               className={`p-4 rounded-full transition-all active:scale-95 ${
-                liked ? 'bg-red-50 text-red-500' : 'text-slate-400 hover:bg-slate-50'
+                liked ? 'bg-pink-500/20 text-pink-400' : 'text-gray-400 hover:bg-white/10 hover:text-white'
               }`}
             >
               <Heart size={24} fill={liked ? 'currentColor' : 'none'} />
@@ -261,19 +263,19 @@ export default function BlogPage() {
               onClick={handleToggleBookmark}
               title={bookmarked ? 'Remove Bookmark' : 'Bookmark'}
               className={`p-4 rounded-full transition-all active:scale-95 ${
-                bookmarked ? 'bg-yellow-50 text-yellow-600' : 'text-slate-400 hover:bg-slate-50'
+                bookmarked ? 'bg-amber-500/20 text-amber-400' : 'text-gray-400 hover:bg-white/10 hover:text-white'
               }`}
             >
               <Bookmark size={24} fill={bookmarked ? 'currentColor' : 'none'} />
             </button>
-            <div className="h-px w-8 bg-slate-100 hidden lg:block" />
+            <div className="h-px w-8 bg-white/10 hidden lg:block" />
             {user?.id !== blog.author_id && (
               <button
                 onClick={handleToggleFollow}
                 disabled={loadingFollow}
                 title={following ? 'Unfollow Author' : 'Follow Author'}
                 className={`p-4 rounded-full transition-all active:scale-95 disabled:opacity-30 ${
-                  following ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:bg-slate-50'
+                  following ? 'bg-indigo-500/20 text-indigo-400' : 'text-gray-400 hover:bg-white/10 hover:text-white'
                 }`}
               >
                 {loadingFollow

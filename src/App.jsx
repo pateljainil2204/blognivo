@@ -18,9 +18,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col bg-slate-950 bg-gradient-to-br from-slate-950 via-indigo-950/20 to-slate-950 text-white">
           <Navbar />
-          <main className="flex-1">
+          <main className="flex-1 relative z-10">
             <ErrorBoundary>
               <Routes>
                 <Route path="/" element={<Home />} />
