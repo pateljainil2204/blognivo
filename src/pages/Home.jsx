@@ -15,7 +15,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchBlogs({ category });
-    
+
     supabase
       .from('categories')
       .select('name')
@@ -35,22 +35,22 @@ export default function Home() {
       {/* Hero Section */}
       <div className="relative text-center mb-14 pt-8 min-h-[75vh] flex flex-col justify-center">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/20 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
-        
+
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-indigo-500/30 text-sm font-medium text-indigo-300 mb-6 animate-pulse-glow">
           <BrainCircuit size={16} /> <span>Next-Gen Publishing Platform</span>
         </div>
-        
+
         <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tight leading-tight">
           Write Faster. <br />
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400">
             Think Bigger.
           </span>
         </h1>
-        
+
         <p className="text-xl text-gray-400 max-w-xl mx-auto font-medium leading-relaxed mb-6 tracking-tight">
           The premium platform for modern creators. Harness the power of community and beautiful dark mode aesthetics to elevate your content.
         </p>
-        
+
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center relative z-10">
           <button onClick={() => window.scrollTo({ top: 800, behavior: 'smooth' })} className="btn-primary flex items-center gap-2 py-4 px-8 text-lg w-full sm:w-auto">
             Explore Articles <ChevronRight size={20} />
@@ -65,7 +65,7 @@ export default function Home() {
       <div className="max-w-4xl mx-auto mb-14 relative group">
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10 pointer-events-none self-end h-[50%] top-auto bottom-0"></div>
         <div className="glass rounded-[2rem] p-6 md:p-8 border border-white/10 shadow-2xl shadow-indigo-500/10 transition-all duration-500 hover:shadow-indigo-500/20 hover:scale-[1.01]">
-          
+
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-6 border-b border-white/5">
             <div>
               <div className="flex items-center gap-3 mb-1">
@@ -79,14 +79,14 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-               <div className="flex -space-x-2">
-                  {[1,2,3].map(i => (
-                    <div key={i} className="w-8 h-8 rounded-full border-2 border-slate-950 bg-indigo-500/20 flex items-center justify-center text-[10px] font-bold text-white glass">
-                      {String.fromCharCode(64 + i)}
-                    </div>
-                  ))}
-               </div>
-               <button className="px-4 py-1.5 rounded-xl glass border border-white/10 text-[11px] font-bold text-gray-300 hover:bg-white/5 transition-colors">Export PDF</button>
+              <div className="flex -space-x-2">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="w-8 h-8 rounded-full border-2 border-slate-950 bg-indigo-500/20 flex items-center justify-center text-[10px] font-bold text-white glass">
+                    {String.fromCharCode(64 + i)}
+                  </div>
+                ))}
+              </div>
+              <button className="px-4 py-1.5 rounded-xl glass border border-white/10 text-[11px] font-bold text-gray-300 hover:bg-white/5 transition-colors">Export PDF</button>
             </div>
           </div>
 
@@ -111,10 +111,10 @@ export default function Home() {
                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{stat.label}</p>
                 </div>
                 <div className="mt-4 h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                   <div 
-                    className={`h-full opacity-60 rounded-full transition-all duration-1000 ${stat.color.replace('text', 'bg')}`} 
+                  <div
+                    className={`h-full opacity-60 rounded-full transition-all duration-1000 ${stat.color.replace('text', 'bg')}`}
                     style={{ width: `${stat.progress}%` }}
-                   ></div>
+                  ></div>
                 </div>
               </div>
             ))}
@@ -155,7 +155,7 @@ export default function Home() {
         </div>
       ) : (
         <>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((blog) => (
               <BlogCard key={blog.id} blog={blog} />
             ))}
@@ -168,7 +168,7 @@ export default function Home() {
               </div>
               <h2 className="text-3xl font-black text-white mb-3 tracking-tight">No results found</h2>
               <p className="text-gray-400 font-medium px-8 mb-8">We couldn't find any articles matching your search criteria.</p>
-              <button 
+              <button
                 onClick={() => { setSearch(''); setCategory(''); }}
                 className="btn-primary"
               >
