@@ -19,7 +19,7 @@ export const useBlogs = () => {
       
       let query = supabase
         .from('blogs')
-        .select('*, users!blogs_author_id_fkey(name, avatar)')
+        .select('*, users!blogs_author_id_fkey(id, name, avatar, role)')
         .order('created_at', { ascending: false });
 
       if (status) query = query.eq('status', status);

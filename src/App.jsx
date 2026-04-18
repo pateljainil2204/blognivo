@@ -18,9 +18,12 @@ import Feed from './pages/Feed';
 import Saved from './pages/Saved';
 import Liked from './pages/Liked';
 import Following from './pages/Following';
+import Followers from './pages/Followers';
 import UserProfile from './pages/UserProfile';
 import AuthorProfile from './pages/AuthorProfile';
 import AdminProfile from './pages/AdminProfile';
+import MyBlogs from './pages/MyBlogs';
+import Drafts from './pages/Drafts';
 
 export default function App() {
   return (
@@ -36,7 +39,12 @@ export default function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/blog/:id" element={<BlogPage />} />
-                <Route path="/profile/:id" element={<ProfilePage />} />
+                
+                {/* Dynamic Public Profiles */}
+                <Route path="/profile/:id" element={<UserProfile />} />
+                <Route path="/author/:id" element={<AuthorProfile />} />
+                <Route path="/admin-profile/:id" element={<AdminProfile />} />
+
                 <Route
                   path="/editor"
                   element={
@@ -74,6 +82,30 @@ export default function App() {
                   element={
                     <ProtectedRoute requiredRole="author">
                       <AuthorProfile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/my-blogs"
+                  element={
+                    <ProtectedRoute requiredRole="author">
+                      <MyBlogs />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/drafts"
+                  element={
+                    <ProtectedRoute requiredRole="author">
+                      <Drafts />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/followers"
+                  element={
+                    <ProtectedRoute requiredRole="author">
+                      <Followers />
                     </ProtectedRoute>
                   }
                 />
@@ -135,4 +167,4 @@ export default function App() {
       </AuthProvider>
     </BrowserRouter>
   );
-}
+}

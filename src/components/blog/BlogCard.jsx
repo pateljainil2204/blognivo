@@ -4,12 +4,19 @@ import { BookOpen, Clock, Heart, Eye, Bookmark } from 'lucide-react';
 export default function BlogCard({ blog }) {
   if (!blog) return null;
 
+  const authorRole = blog.users?.role;
+  const profilePath = authorRole === 'admin' 
+    ? `/admin-profile/${blog.author_id}` 
+    : authorRole === 'author' 
+      ? `/author/${blog.author_id}` 
+      : `/profile/${blog.author_id}`;
+
   return (
-    <Link
-      to={`/blog/${blog.id}`}
-      className="group card-premium overflow-hidden flex flex-col h-full bg-white/5 hover:bg-white/10"
-    >
-      <div className="relative overflow-hidden aspect-[16/10] bg-slate-900">
+    <div className="group card-premium overflow-hidden flex flex-col h-full bg-white/5 hover:bg-white/[0.08] transition-all border border-white/5 relative">
+      {/* Blog Detail Link Overlay (Image + Content) */}
+      <Link to={`/blog/${blog.id}`} className="absolute inset-0 z-0"></Link>
+
+      <div className="relative overflow-hidden aspect-[16/10] bg-slate-900 pointer-events-none relative z-10">
         {blog.cover_image ? (
           <>
             <img 
@@ -25,42 +32,45 @@ export default function BlogCard({ blog }) {
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/10 to-transparent"></div>
           </div>
         )}
-        <div className="absolute top-4 left-4 flex gap-2">
+        <div className="absolute top-4 left-4 flex gap-2 z-20 pointer-events-auto">
           {blog.category && (
             <span className="glass bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
               {blog.category}
             </span>
           )}
-          {/* Optional extra tag from blog.tags if it exists */}
-          {blog.tags && blog.tags.length > 0 && (
-            <span className="glass bg-indigo-500/20 backdrop-blur-md border border-indigo-500/30 text-indigo-100 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
-              {blog.tags[0]}
-            </span>
-          )}
         </div>
       </div>
       
-      <div className="p-6 flex flex-col flex-1">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-[10px] text-white font-bold shadow-sm">
-            {blog.users?.name?.[0]?.toUpperCase()}
-          </div>
-          <span className="text-xs font-semibold text-gray-300">{blog.users?.name}</span>
+      <div className="p-6 flex flex-col flex-1 relative z-10">
+        <div className="flex items-center gap-2 mb-4 relative z-20">
+          <Link 
+            to={profilePath}
+            className="flex items-center gap-2 group/author hover:text-indigo-400 transition-all pointer-events-auto"
+          >
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-[10px] text-white font-bold shadow-sm overflow-hidden shrink-0">
+              {blog.users?.avatar ? (
+                <img src={blog.users.avatar} alt="" className="w-full h-full object-cover group-hover/author:scale-110 transition-transform" />
+              ) : (
+                blog.users?.name?.[0]?.toUpperCase()
+              )}
+            </div>
+            <span className="text-xs font-semibold text-gray-300 group-hover/author:text-indigo-400">{blog.users?.name}</span>
+          </Link>
           <span className="text-gray-600">•</span>
-          <span className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium">
-            <Clock size={12} /> {blog.read_time} min read
+          <span className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium whitespace-nowrap">
+            <Clock size={12} /> {blog.read_time} min
           </span>
         </div>
         
-        <h3 className="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors line-clamp-2 mb-3 leading-tight">
+        <h3 className="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors line-clamp-2 mb-3 leading-tight pointer-events-none">
           {blog.title}
         </h3>
         
-        <p className="text-sm text-gray-400 line-clamp-3 mb-6 leading-relaxed flex-1">
+        <p className="text-sm text-gray-400 line-clamp-3 mb-6 leading-relaxed flex-1 pointer-events-none">
           {blog.content.slice(0, 150)}...
         </p>
-
-        <div className="flex items-center justify-between pt-5 border-t border-white/5 mt-auto">
+        
+        <div className="flex items-center justify-between pt-5 border-t border-white/5 mt-auto pointer-events-none">
           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
             {new Date(blog.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
@@ -77,6 +87,6 @@ export default function BlogCard({ blog }) {
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

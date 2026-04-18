@@ -52,8 +52,9 @@ export default function Navbar() {
     ],
     author: [
       { id: 'write', label: 'Write Blog', icon: PenSquare, path: '/editor' },
-      { id: 'my-blogs', label: 'My Blogs', icon: BookOpen, path: '/author-profile' },
-      { id: 'drafts', label: 'Drafts', icon: Clock, path: '/dashboard?tab=blogs&status=draft' },
+      { id: 'my-blogs', label: 'My Blogs', icon: BookOpen, path: '/my-blogs' },
+      { id: 'drafts', label: 'Drafts', icon: Clock, path: '/drafts' },
+      { id: 'followers', label: 'Followers', icon: Users, path: '/followers' },
     ],
     admin: [
       { id: 'pending', label: 'Pending', icon: Clock, path: '/admin?status=pending' },

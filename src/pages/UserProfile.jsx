@@ -1,87 +1,106 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { Heart, Bookmark, User, BookOpen, Clock, Settings, Grid, List } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import ProfileLayout from '../components/profile/ProfileLayout';
 import BlogCard from '../components/blog/BlogCard';
 import toast from 'react-hot-toast';
 
 export default function UserProfile() {
-  const { user, profile, isAuthor } = useAuth();
+  const { id } = useParams();
+  const { user: currentUser, profile: currentProfile } = useAuth();
   const [likes, setLikes] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
   const [following, setFollowing] = useState([]);
   const [myBlogs, setMyBlogs] = useState([]);
+  const [activeProfile, setActiveProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('liked');
 
+  const targetId = id || currentUser?.id;
+  const isOwnProfile = !id || id === currentUser?.id;
+
   const fetchData = useCallback(async () => {
-    if (!user) return;
+    if (!targetId) return;
     setLoading(true);
     try {
+      // Fetch profile info
+      const { data: profileData } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', targetId)
+        .single();
+      
+      setActiveProfile(profileData);
+
+      const isTargetAuthor = profileData?.role === 'author';
+
       const [bmRes, likeRes, followRes] = await Promise.all([
-        supabase
-          .from('bookmarks')
-          .select('*, blogs(*, users!blogs_author_id_fkey(name, avatar))')
-          .eq('user_id', user.id),
+        isOwnProfile 
+          ? supabase.from('bookmarks').select('*, blogs(*, users!blogs_author_id_fkey(name, avatar))').eq('user_id', targetId)
+          : Promise.resolve({ data: [] }),
         supabase
           .from('likes')
           .select('*, blogs(*, users!blogs_author_id_fkey(name, avatar))')
-          .eq('user_id', user.id),
+          .eq('user_id', targetId),
         supabase
           .from('follows')
           .select('*, users!follows_following_id_fkey(name, avatar, bio)')
-          .eq('follower_id', user.id),
+          .eq('follower_id', targetId),
       ]);
+
       setBookmarks((bmRes.data || []).filter(b => b.blogs));
       setLikes((likeRes.data || []).filter(l => l.blogs));
       setFollowing(followRes.data || []);
 
-      if (isAuthor) {
+      if (isTargetAuthor) {
         const { data } = await supabase
           .from('blogs')
           .select('*, users!blogs_author_id_fkey(name, avatar)')
-          .eq('author_id', user.id)
+          .eq('author_id', targetId)
+          .eq('status', 'approved') // Only show approved blogs for public view
           .order('created_at', { ascending: false });
         setMyBlogs(data || []);
       }
     } catch (err) {
       console.error('Error fetching profile data:', err);
-      toast.error('Failed to load your activity');
+      toast.error('Failed to load activity');
     } finally {
       setLoading(false);
     }
-  }, [user, isAuthor]);
+  }, [targetId, isOwnProfile]);
 
   useEffect(() => {
-    if (user) fetchData();
-  }, [user, fetchData]);
+    fetchData();
+  }, [fetchData]);
 
   const stats = [
-    { label: 'Blogs Read', value: (likes.length + bookmarks.length) || 0, icon: BookOpen, iconColor: 'text-indigo-400', hoverColor: 'group-hover:text-indigo-400', borderColor: 'hover:border-indigo-500/30' },
-    { label: 'Likes Given', value: likes.length, icon: Heart, iconColor: 'text-pink-400', hoverColor: 'group-hover:text-pink-400', borderColor: 'hover:border-pink-500/30' },
-    { label: 'Bookmarks', value: bookmarks.length, icon: Bookmark, iconColor: 'text-amber-400', hoverColor: 'group-hover:text-amber-400', borderColor: 'hover:border-amber-500/30' },
+    { label: 'Articles Liked', value: likes.length, icon: Heart, iconColor: 'text-pink-400', hoverColor: 'group-hover:text-pink-400', borderColor: 'hover:border-pink-500/30' },
     { label: 'Following', value: following.length, icon: User, iconColor: 'text-cyan-400', hoverColor: 'group-hover:text-cyan-400', borderColor: 'hover:border-cyan-500/30' },
+    ...(isOwnProfile ? [{ label: 'Bookmarks', value: bookmarks.length, icon: Bookmark, iconColor: 'text-amber-400', hoverColor: 'group-hover:text-amber-400', borderColor: 'hover:border-amber-500/30' }] : []),
+    ...(myBlogs.length > 0 ? [{ label: 'Publications', value: myBlogs.length, icon: BookOpen, iconColor: 'text-indigo-400', hoverColor: 'group-hover:text-indigo-400', borderColor: 'hover:border-indigo-500/30' }] : []),
   ];
 
-  const actionButton = (
+  const actionButton = isOwnProfile ? (
     <Link to="/dashboard" className="px-6 py-3 rounded-2xl font-bold text-sm transition-all bg-white/10 text-white border border-white/20 shadow-lg hover:bg-white/20 hover:scale-105 flex items-center gap-2">
       <Settings size={16} /> Edit Profile
     </Link>
-  );
+  ) : null;
 
   return (
-    <ProfileLayout profile={profile} stats={stats} actionButton={actionButton}>
+    <ProfileLayout profile={activeProfile} stats={stats} actionButton={actionButton}>
       <div className="flex flex-col gap-8">
         {/* Tabs Navigation */}
         <div className="flex items-center gap-8 border-b border-white/10 pb-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
           {[
-            { id: 'liked', label: 'Liked Articles', icon: Heart },
-            { id: 'saved', label: 'Saved Blogs', icon: Bookmark },
-            { id: 'following', label: 'Following Authors', icon: User },
-            ...(isAuthor ? [{ id: 'my-blogs', label: 'My Publications', icon: Grid }] : []),
-          ].map((tab) => (
+            { id: 'liked', label: 'Liked Articles', icon: Heart, visible: true },
+            { id: 'saved', label: 'Saved Blogs', icon: Bookmark, visible: isOwnProfile },
+            { id: 'following', label: 'Following Authors', icon: User, visible: true },
+            { id: 'my-blogs', label: 'My Publications', icon: Grid, visible: activeProfile?.role === 'author' },
+          ]
+          .filter(tab => tab.visible)
+          .map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -109,12 +128,12 @@ export default function UserProfile() {
                   {likes.length > 0 ? (
                     likes.map(l => <BlogCard key={l.id} blog={l.blogs} />)
                   ) : (
-                    <EmptyState message="You haven't liked any articles yet." />
+                    <EmptyState message="No liked articles yet." />
                   )}
                 </div>
               )}
 
-              {activeTab === 'saved' && (
+              {activeTab === 'saved' && isOwnProfile && (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {bookmarks.length > 0 ? (
                     bookmarks.map(b => <BlogCard key={b.id} blog={b.blogs} />)
@@ -128,18 +147,18 @@ export default function UserProfile() {
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {following.length > 0 ? (
                     following.map(f => (
-                      <Link key={f.id} to={`/profile/${f.following_id}`} className="glass p-6 rounded-3xl border border-white/10 hover:border-indigo-500/30 transition-all flex items-center gap-4 group">
+                      <Link key={f.id} to={f.users?.role === 'author' ? `/author/${f.following_id}` : `/profile/${f.following_id}`} className="glass p-6 rounded-3xl border border-white/10 hover:border-indigo-500/30 transition-all flex items-center gap-4 group">
                         <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-xl font-bold text-white border-2 border-white/5 overflow-hidden">
                           {f.users?.avatar ? <img src={f.users.avatar} alt="" className="w-full h-full object-cover" /> : f.users?.name?.[0]}
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="font-bold text-white group-hover:text-indigo-400 transition-colors truncate">{f.users?.name}</h4>
-                          <p className="text-xs text-gray-500 truncate">{f.users?.bio || 'Author'}</p>
+                          <p className="text-xs text-gray-500 truncate">{f.users?.bio || (f.users?.role === 'author' ? 'Author' : 'Reader')}</p>
                         </div>
                       </Link>
                     ))
                   ) : (
-                    <EmptyState message="You aren't following anyone yet." />
+                    <EmptyState message="Not following anyone yet." />
                   )}
                 </div>
               )}
@@ -149,7 +168,7 @@ export default function UserProfile() {
                   {myBlogs.length > 0 ? (
                     myBlogs.map(blog => <BlogCard key={blog.id} blog={blog} />)
                   ) : (
-                    <EmptyState message="You haven't published any blogs yet." />
+                    <EmptyState message="No public blogs yet." />
                   )}
                 </div>
               )}

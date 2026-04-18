@@ -1,8 +1,16 @@
 import ReactMarkdown from 'react-markdown';
 import { Clock, Calendar, Hash } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function BlogDetail({ blog }) {
   if (!blog) return null;
+
+  const authorRole = blog.users?.role;
+  const profilePath = authorRole === 'admin' 
+    ? `/admin-profile/${blog.author_id}` 
+    : authorRole === 'author' 
+      ? `/author/${blog.author_id}` 
+      : `/profile/${blog.author_id}`;
 
   return (
     <article className="animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -27,15 +35,19 @@ export default function BlogDetail({ blog }) {
           {blog.title}
         </h1>
 
-        <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 mb-10 shadow-lg">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-            {blog.users?.name?.[0]?.toUpperCase()}
+        <Link to={profilePath} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 mb-10 shadow-lg hover:bg-white/10 hover:border-indigo-500/20 transition-all group">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-lg overflow-hidden shrink-0">
+            {blog.users?.avatar ? (
+              <img src={blog.users.avatar} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+            ) : (
+              blog.users?.name?.[0]?.toUpperCase()
+            )}
           </div>
           <div>
-            <p className="text-white font-bold">{blog.users?.name}</p>
+            <p className="text-white font-bold group-hover:text-indigo-400 transition-colors">{blog.users?.name}</p>
             <p className="text-sm text-gray-400 line-clamp-1">{blog.users?.bio || 'Author at BlogNivo'}</p>
           </div>
-        </div>
+        </Link>
 
         {blog.cover_image && (
           <div className="rounded-3xl overflow-hidden shadow-2xl mb-12 shadow-indigo-500/20 border border-white/10">
