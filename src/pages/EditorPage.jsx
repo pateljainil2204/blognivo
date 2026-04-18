@@ -197,19 +197,20 @@ export default function EditorPage() {
   );
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12 relative z-10 w-full">
+    <div className="max-w-3xl mx-auto px-6 py-12 relative z-10 w-full">
       <div className="absolute top-0 right-0 -mr-64 -mt-32 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none -z-10"></div>
       
-      <div className="flex flex-wrap items-center gap-4 mb-8">
-        <Link to="/dashboard" className="inline-flex items-center gap-2 text-gray-400 hover:text-indigo-400 font-bold text-sm uppercase tracking-widest transition-colors group">
-          <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" /> Dashboard
+      <div className="flex items-center justify-between gap-4 mb-10">
+        <Link to="/dashboard" className="inline-flex items-center gap-2 text-gray-500 hover:text-indigo-400 font-semibold text-sm transition-colors group">
+          <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
+          <span>Back to Dashboard</span>
         </Link>
         {originalStatus && (
-          <span className={`ml-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-            originalStatus === 'rejected' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
-            originalStatus === 'pending' ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' :
-            originalStatus === 'approved' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
-            'bg-white/10 text-gray-400 border-white/20'
+          <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border backdrop-blur-sm ${
+            originalStatus === 'rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+            originalStatus === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+            originalStatus === 'approved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+            'bg-white/5 text-gray-400 border-white/10'
           }`}>
             {originalStatus}
           </span>
@@ -218,17 +219,19 @@ export default function EditorPage() {
 
       {/* Rejection Banner */}
       {originalStatus === 'rejected' && (
-        <div className="mb-8 p-5 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-4 backdrop-blur-md">
-          <div className="p-2 bg-red-500/20 rounded-xl text-red-400 shrink-0">
-            <AlertTriangle size={20} />
+        <div className="mb-10 p-6 bg-red-500/5 border border-red-500/10 rounded-2xl flex items-start gap-5 backdrop-blur-xl animate-in slide-in-from-top-4 duration-500">
+          <div className="p-3 bg-red-500/10 rounded-xl text-red-400 shrink-0 shadow-lg shadow-red-500/10">
+            <AlertTriangle size={24} />
           </div>
-          <div>
-            <p className="text-sm font-black text-red-300 mb-1">This article was rejected</p>
+          <div className="space-y-2">
+            <h3 className="text-base font-bold text-red-200">Action Required: Feedback Received</h3>
             {rejectionReason
-              ? <p className="text-sm text-red-400 leading-relaxed">Reason: <span className="italic">{rejectionReason}</span></p>
-              : <p className="text-sm text-red-500 opacity-70">No specific reason was provided. Please review and improve your content before resubmitting.</p>
+              ? <div className="text-sm text-red-400/90 leading-relaxed bg-red-500/5 p-4 rounded-xl border border-red-500/10 italic">
+                  "{rejectionReason}"
+                </div>
+              : <p className="text-sm text-red-400/70">No specific reason provided. Please review and improve your content for resubmission.</p>
             }
-            <p className="text-xs text-red-400/80 font-bold mt-2 uppercase tracking-widest">Edit your article and click "Publish Article" to resubmit for review.</p>
+            <p className="text-xs text-red-400/50 font-medium uppercase tracking-wider">Update your work and click "Resubmit" to send it back for review.</p>
           </div>
         </div>
       )}
