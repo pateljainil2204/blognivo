@@ -14,6 +14,10 @@ import DashboardSwitcher from './pages/DashboardSwitcher';
 import EditorPage from './pages/EditorPage';
 import AdminDashboard from './pages/AdminDashboard';
 import Blogs from './pages/Blogs';
+import Feed from './pages/Feed';
+import Saved from './pages/Saved';
+import Liked from './pages/Liked';
+import Following from './pages/Following';
 
 export default function App() {
   return (
@@ -59,6 +63,38 @@ export default function App() {
                   element={
                     <ProtectedRoute requiredRole="admin">
                       <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/feed"
+                  element={
+                    <ProtectedRoute>
+                      <Feed />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/saved"
+                  element={
+                    <ProtectedRoute>
+                      <Saved />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/liked"
+                  element={
+                    <ProtectedRoute>
+                      <Liked />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/following"
+                  element={
+                    <ProtectedRoute>
+                      <Following />
                     </ProtectedRoute>
                   }
                 />
