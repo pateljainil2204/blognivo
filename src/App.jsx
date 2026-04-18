@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage';
 import DashboardSwitcher from './pages/DashboardSwitcher';
 import EditorPage from './pages/EditorPage';
 import AdminDashboard from './pages/AdminDashboard';
+import Blogs from './pages/Blogs';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
             <ErrorBoundary>
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/blogs" element={<Blogs />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/blog/:id" element={<BlogPage />} />

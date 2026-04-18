@@ -3,32 +3,29 @@ import { supabase } from '../lib/supabase';
 import { useBlogs } from '../hooks/useBlogs';
 import { Search, Activity, Users, Star, MessageSquare, Plus, ChevronRight, LayoutDashboard, BrainCircuit, Eye, FileText, Zap, Target } from 'lucide-react';
 import BlogCard from '../components/blog/BlogCard';
+import { Link } from 'react-router-dom';
 import HomeEnrichment from '../components/home/HomeEnrichment';
 import AIAnalyticsDashboard from '../components/home/AIAnalyticsDashboard';
 import InteractiveHomeSections from '../components/home/InteractiveHomeSections';
 
 export default function Home() {
   const { blogs, loading, fetchBlogs } = useBlogs();
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('');
-  const [categories, setCategories] = useState([]);
-
   useEffect(() => {
-    fetchBlogs({ category });
+    fetchBlogs({ });
+  }, [fetchBlogs]);
 
-    supabase
-      .from('categories')
-      .select('name')
-      .then(({ data }) => {
-        if (data) setCategories(data.map((c) => c.name));
-      });
-  }, [category, fetchBlogs]);
+  // Hardcoded featured blog IDs to freeze the homepage layout
+  const featuredBlogIds = [
+    "970b73ef-d87e-46ce-9f58-1e76874936dd",
+    "9c7fd422-1b58-40e9-b6f8-9244ebf4e447",
+    "f190e3d3-0d45-4359-8024-5dec75f578a9",
+    "ef277582-6fd1-47dc-aa76-7d4cd1fb5bab",
+    "3bac711c-10a0-4729-8153-c19b68fd4f70",
+    "7bc3c23f-f780-4b4d-aa47-ca8e4fc7412f"
+  ];
 
-  const filtered = blogs.filter(
-    (b) =>
-      b.title.toLowerCase().includes(search.toLowerCase()) ||
-      b.tags?.some((t) => t.includes(search.toLowerCase()))
-  );
+  // Limit explicitly chosen blogs for the homepage
+  const recentBlogs = blogs.filter(blog => featuredBlogIds.includes(blog.id));
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 relative z-10 w-full overflow-hidden">
@@ -55,9 +52,9 @@ export default function Home() {
           <button onClick={() => window.scrollTo({ top: 800, behavior: 'smooth' })} className="btn-primary flex items-center gap-2 py-4 px-8 text-lg w-full sm:w-auto">
             Explore Articles <ChevronRight size={20} />
           </button>
-          <a href="/signup" className="btn-premium flex items-center gap-2 py-4 px-8 text-lg w-full sm:w-auto border border-white/10 hover:border-white/30">
+          <Link to="/signup" className="btn-premium flex items-center gap-2 py-4 px-8 text-lg w-full sm:w-auto border border-white/10 hover:border-white/30">
             Start Writing Free
-          </a>
+          </Link>
         </div>
       </div>
 
@@ -122,28 +119,12 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Search & Filter */}
-      <div className="glass sticky top-20 z-40 p-4 rounded-[2rem] mb-8 flex flex-col md:flex-row gap-4 max-w-4xl mx-auto border border-white/10 shadow-lg shadow-indigo-500/5">
-        <div className="relative flex-1">
-          <input
-            type="text"
-            placeholder="Search blogs, tags, or authors..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 pl-12 focus:ring-1 focus:ring-indigo-500/50 outline-none transition font-medium text-white placeholder-gray-500"
-          />
-          <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+      {/* Explore More Blogs Call to action instead of Search & Filter */}
+      <div className="flex justify-between items-end mb-8 max-w-4xl mx-auto px-2">
+        <div>
+          <h2 className="text-3xl font-black text-white tracking-tight">Recent Insights</h2>
+          <p className="text-gray-400 font-medium mt-2">The latest from our community of writers</p>
         </div>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="bg-white/5 border border-white/10 rounded-2xl px-6 py-3.5 outline-none focus:ring-1 focus:ring-indigo-500/50 transition cursor-pointer font-bold text-gray-300 text-sm appearance-none"
-        >
-          <option value="" className="bg-slate-900">All Topics</option>
-          {categories.map((c) => (
-            <option key={c} value={c} className="bg-slate-900">{c}</option>
-          ))}
-        </select>
       </div>
 
       {/* Loading Skeleton */}
@@ -156,26 +137,16 @@ export default function Home() {
       ) : (
         <>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((blog) => (
+            {recentBlogs.map((blog) => (
               <BlogCard key={blog.id} blog={blog} />
             ))}
           </div>
 
-          {filtered.length === 0 && (
-            <div className="max-w-md mx-auto text-center py-10 glass rounded-[3rem] border border-white/10 shadow-lg animate-float mt-12">
-              <div className="w-24 h-24 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-8 text-gray-500">
-                <Search size={48} strokeWidth={1.5} />
-              </div>
-              <h2 className="text-3xl font-black text-white mb-3 tracking-tight">No results found</h2>
-              <p className="text-gray-400 font-medium px-8 mb-8">We couldn't find any articles matching your search criteria.</p>
-              <button
-                onClick={() => { setSearch(''); setCategory(''); }}
-                className="btn-primary"
-              >
-                Clear Filters
-              </button>
-            </div>
-          )}
+          <div className="mt-12 text-center">
+            <Link to="/blogs" className="btn-primary inline-flex items-center gap-2 px-8 py-4 text-base font-bold">
+              View All Blogs <ChevronRight size={18} />
+            </Link>
+          </div>
         </>
       )}
 
