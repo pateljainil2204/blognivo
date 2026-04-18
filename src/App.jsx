@@ -18,6 +18,9 @@ import Feed from './pages/Feed';
 import Saved from './pages/Saved';
 import Liked from './pages/Liked';
 import Following from './pages/Following';
+import UserProfile from './pages/UserProfile';
+import AuthorProfile from './pages/AuthorProfile';
+import AdminProfile from './pages/AdminProfile';
 
 export default function App() {
   return (
@@ -55,6 +58,30 @@ export default function App() {
                   element={
                     <ProtectedRoute>
                       <DashboardSwitcher />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <UserProfile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/author-profile"
+                  element={
+                    <ProtectedRoute requiredRole="author">
+                      <AuthorProfile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin-profile"
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <AdminProfile />
                     </ProtectedRoute>
                   }
                 />

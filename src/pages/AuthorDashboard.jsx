@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useBlogs } from '../hooks/useBlogs';
@@ -9,11 +9,22 @@ import toast from 'react-hot-toast';
 export default function AuthorDashboard() {
   const { user, profile } = useAuth();
   const { toggleBookmark } = useBlogs();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const tab = searchParams.get('tab') || 'blogs';
+  const statusFilter = searchParams.get('status') || 'all';
+
+  const setTab = (t) => {
+    setSearchParams({ tab: t, status: statusFilter });
+  };
+
+  const setStatusFilter = (s) => {
+    setSearchParams({ tab, status: s });
+  };
+
   const [blogs, setBlogs] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
   const [stats, setStats] = useState({ views: 0, likes: 0, followers: 0, bookmarksReceived: 0 });
-  const [tab, setTab] = useState('blogs');
-  const [statusFilter, setStatusFilter] = useState('all');
   const [editingProfile, setEditingProfile] = useState(false);
   const [newName, setNewName] = useState('');
   const [newBio, setNewBio] = useState('');

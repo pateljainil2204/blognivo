@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useAI } from '../hooks/useAI';
@@ -10,13 +11,24 @@ import AdminUserList from '../components/admin/AdminUserList';
 export default function AdminDashboard() {
   const { user, profile, isAdmin } = useAuth();
   const { moderate } = useAI();
-  const [activeTab, setActiveTab] = useState('blogs');
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const activeTab = searchParams.get('tab') || 'blogs';
+  const filterStatus = searchParams.get('status') || 'pending';
+
+  const setActiveTab = (tab) => {
+    setSearchParams({ tab, status: filterStatus });
+  };
+
+  const setFilterStatus = (status) => {
+    setSearchParams({ tab: activeTab, status });
+  };
+
   const [blogs, setBlogs] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [moderating, setModerating] = useState(null);
-  const [filterStatus, setFilterStatus] = useState('pending');
   const [platformStats, setPlatformStats] = useState({
     totalUsers: 0,
     totalBlogs: 0,

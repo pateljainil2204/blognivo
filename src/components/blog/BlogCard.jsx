@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { BookOpen, Clock, Heart, Eye, Bookmark } from 'lucide-react';
 
 export default function BlogCard({ blog }) {
+  if (!blog) return null;
+
   return (
     <Link
       to={`/blog/${blog.id}`}
