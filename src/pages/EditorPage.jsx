@@ -163,8 +163,21 @@ export default function EditorPage() {
         toast.success(isResubmit ? 'Resubmitted for review! 🎉' : 'Submitted for review! 🎉');
         
         const blogId = id || result.data?.[0]?.id || result.data?.id;
-        console.log('Publish successful, blogId:', blogId);
         
+        // Notify Admins
+        if (newStatus === 'pending') {
+          const { data: admins } = await supabase.from('users').select('id').eq('role', 'admin');
+          if (admins) {
+            const adminNotifications = admins.map(admin => ({
+              user_id: admin.id,
+              message: `New blog submitted for review: "${title}"`,
+              type: 'info',
+              metadata: { blog_id: blogId }
+            }));
+            await supabase.from('notifications').insert(adminNotifications);
+          }
+        }
+
         if (blogId) {
           // Fire-and-forget AI moderation — silently ignored if edge function unavailable
           // We don't await this to keep the UI fast
@@ -179,7 +192,6 @@ export default function EditorPage() {
           })();
         }
         
-        console.log('Navigating to dashboard...');
         // Navigation should be the LAST thing we do before finishing the save flow
         navigate('/dashboard');
       }

@@ -1,6 +1,6 @@
 import { User, Shield, ShieldAlert, Award, MoreVertical, Loader2 } from 'lucide-react';
 
-export default function AdminUserList({ users, loading, onUpdateRole }) {
+export default function AdminUserList({ users, loading, onUpdateRole, onDelete }) {
   if (loading) {
     return (
       <div className="space-y-3">
@@ -60,6 +60,13 @@ export default function AdminUserList({ users, loading, onUpdateRole }) {
                     title="Toggle Author"
                   >
                     <Award size={18} />
+                  </button>
+                  <button
+                    onClick={() => onDelete(u.id)}
+                    className="p-2.5 rounded-xl text-red-500/50 hover:bg-red-500/10 hover:text-red-500 hover:shadow-sm border border-transparent hover:border-red-500/20 transition-all bg-white/5"
+                    title="Delete User"
+                  >
+                    <ShieldAlert size={18} />
                   </button>
                 </div>
               </td>

@@ -50,6 +50,17 @@ export const useBlogs = () => {
         await supabase.from('likes').delete().eq('user_id', userId).eq('blog_id', blogId);
       } else {
         await supabase.from('likes').insert({ user_id: userId, blog_id: blogId });
+        
+        // Notify Author
+        const { data: blog } = await supabase.from('blogs').select('author_id, title').eq('id', blogId).single();
+        if (blog && blog.author_id !== userId) {
+          await supabase.from('notifications').insert({
+            user_id: blog.author_id,
+            message: `Someone liked your blog: "${blog.title}"`,
+            type: 'like',
+            metadata: { blog_id: blogId }
+          });
+        }
       }
       return true;
     } catch (err) {
@@ -71,6 +82,17 @@ export const useBlogs = () => {
       } else {
         await supabase.from('bookmarks').insert({ user_id: userId, blog_id: blogId });
         toast.success('Saved to bookmarks');
+
+        // Notify Author
+        const { data: blog } = await supabase.from('blogs').select('author_id, title').eq('id', blogId).single();
+        if (blog && blog.author_id !== userId) {
+          await supabase.from('notifications').insert({
+            user_id: blog.author_id,
+            message: `Someone bookmarked your blog: "${blog.title}"`,
+            type: 'info',
+            metadata: { blog_id: blogId }
+          });
+        }
       }
       return true;
     } catch (err) {

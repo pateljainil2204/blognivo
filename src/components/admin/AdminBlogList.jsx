@@ -7,6 +7,7 @@ export default function AdminBlogList({
   onModerate,
   onApprove,
   onReject,
+  onDelete,
   onPreview
 }) {
   if (loading) {
@@ -30,6 +31,15 @@ export default function AdminBlogList({
     );
   }
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'approved': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+      case 'rejected': return 'bg-red-500/10 text-red-400 border-red-500/20';
+      case 'pending': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+      default: return 'bg-white/10 text-gray-400 border-white/10';
+    }
+  };
+
   return (
     <div className="grid gap-4">
       {blogs.map((blog) => (
@@ -39,6 +49,9 @@ export default function AdminBlogList({
               <div className="flex items-center gap-2 mb-2">
                 <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
                   {blog.category}
+                </span>
+                <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusColor(blog.status)}`}>
+                  {blog.status}
                 </span>
                 <span className="text-xs text-gray-400 font-bold tracking-tight">
                   {new Date(blog.created_at).toLocaleDateString()}
@@ -74,7 +87,7 @@ export default function AdminBlogList({
               )}
             </div>
 
-            <div className="flex flex-row md:flex-col gap-2 justify-end md:w-32">
+            <div className="flex flex-row md:flex-col gap-2 justify-end md:w-36">
               <button
                 onClick={() => onModerate(blog.id)}
                 disabled={moderating === blog.id}
@@ -92,20 +105,31 @@ export default function AdminBlogList({
               </button>
 
               <div className="grid grid-cols-2 md:grid-cols-1 gap-2 md:mt-4">
+                {blog.status !== 'approved' && (
+                  <button
+                    onClick={() => onApprove(blog.id)}
+                    className="btn-premium flex items-center justify-center gap-2 py-2.5 text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 transition-all"
+                  >
+                    <CheckCircle size={12} /> Approve
+                  </button>
+                )}
+                {blog.status !== 'rejected' && (
+                  <button
+                    onClick={() => onReject(blog.id)}
+                    className="btn-premium flex items-center justify-center gap-2 py-2.5 text-[10px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-all"
+                  >
+                    <XCircle size={12} /> Reject
+                  </button>
+                )}
                 <button
-                  onClick={() => onApprove(blog.id)}
-                  className="btn-premium flex items-center justify-center gap-2 py-2.5 text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 transition-all"
+                  onClick={() => onDelete(blog.id)}
+                  className="btn-premium flex items-center justify-center gap-2 py-2.5 text-[10px] font-black uppercase tracking-widest bg-red-500/20 text-red-500 border border-red-500/30 hover:bg-red-500/30 transition-all md:mt-2"
                 >
-                  <CheckCircle size={12} /> Approve
-                </button>
-                <button
-                  onClick={() => onReject(blog.id)}
-                  className="btn-premium flex items-center justify-center gap-2 py-2.5 text-[10px] font-black uppercase tracking-widest bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-all"
-                >
-                  <XCircle size={12} /> Reject
+                  <AlertTriangle size={12} /> Delete
                 </button>
               </div>
             </div>
+
           </div>
         </div>
       ))}

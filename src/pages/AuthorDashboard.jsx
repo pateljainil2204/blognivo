@@ -26,9 +26,9 @@ export default function AuthorDashboard() {
   });
   const [loading, setLoading] = useState(true);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (silent = false) => {
     if (!user) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     try {
       const { data: blogsData } = await supabase
         .from('blogs')
@@ -42,17 +42,14 @@ export default function AuthorDashboard() {
 
       const blogIds = allBlogs.map(b => b.id);
 
-      const [likeRes, followerRes, bookmarkRes, activitiesRes] = await Promise.all([
+      const [likeRes, followerRes, bookmarkRes] = await Promise.all([
         blogIds.length > 0
           ? supabase.from('likes').select('*, blogs(title), users(name)').in('blog_id', blogIds).order('created_at', { ascending: false }).limit(10)
           : Promise.resolve({ data: [] }),
         supabase.from('follows').select('*, users!follows_follower_id_fkey(name)').eq('following_id', user.id).order('created_at', { ascending: false }).limit(10),
         blogIds.length > 0
           ? supabase.from('bookmarks').select('*, blogs(title), users(name)').in('blog_id', blogIds).order('created_at', { ascending: false }).limit(10)
-          : Promise.resolve({ data: [] }),
-        blogIds.length > 0 
-          ? supabase.from('likes').select('id', { count: 'exact', head: true }).in('blog_id', blogIds).gt('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-          : Promise.resolve({ count: 0 })
+          : Promise.resolve({ data: [] })
       ]);
 
       const bestViews = approvedBlogs.length > 0 ? [...approvedBlogs].sort((a, b) => (b.views || 0) - (a.views || 0))[0] : null;
@@ -85,15 +82,42 @@ export default function AuthorDashboard() {
 
     } catch (err) {
       console.error('Error fetching dashboard stats:', err);
-      toast.error('Failed to load performance data');
+      if (!silent) toast.error('Failed to load performance data');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [user]);
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+
+    // Set up Real-time subscription for dashboard updates
+    if (user?.id) {
+      const channel = supabase
+        .channel('dashboard-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            const types = ['like', 'bookmark', 'follow'];
+            if (types.includes(payload.new.type)) {
+              // Trigger a silent refresh to update counters and activity list
+              fetchData(true);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user?.id, fetchData]);
 
   const calculateHealth = (blog) => {
     if (!blog?.views || blog.views === 0) return 0;
@@ -159,25 +183,6 @@ export default function AuthorDashboard() {
         </div>
       </div>
 
-      {/* CONSOLIDATED STATS ROW */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-        {[
-          { label: 'Views', value: stats.totalViews, icon: Eye },
-          { label: 'Likes', value: stats.totalLikes, icon: Heart },
-          { label: 'Bookmarks', value: stats.totalBookmarks, icon: Bookmark },
-          { label: 'Followers', value: stats.totalFollowers, icon: Users }
-        ].map((item, i) => (
-          <div key={i} className="flex items-center gap-4 p-6 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/[0.07] transition-all">
-            <div className="p-3 bg-indigo-500/10 rounded-xl text-indigo-400">
-              <item.icon size={20} />
-            </div>
-            <div>
-              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">{item.label}</p>
-              <h4 className="text-xl font-black text-white tracking-tight leading-none">{item.value.toLocaleString()}</h4>
-            </div>
-          </div>
-        ))}
-      </div>
 
       {/* MAIN CONTENT GRID (70/30) */}
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">

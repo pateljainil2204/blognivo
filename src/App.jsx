@@ -13,6 +13,10 @@ import ProfilePage from './pages/ProfilePage';
 import DashboardSwitcher from './pages/DashboardSwitcher';
 import EditorPage from './pages/EditorPage';
 import AdminDashboard from './pages/AdminDashboard';
+import PendingRequests from './pages/admin/PendingRequests';
+import ApprovedBlogs from './pages/admin/ApprovedBlogs';
+import RejectedBlogs from './pages/admin/RejectedBlogs';
+import ManageUsers from './pages/admin/ManageUsers';
 import Blogs from './pages/Blogs';
 import Feed from './pages/Feed';
 import Saved from './pages/Saved';
@@ -122,6 +126,38 @@ export default function App() {
                   element={
                     <ProtectedRoute requiredRole="admin">
                       <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/pending-requests"
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <PendingRequests />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/approved-blogs"
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <ApprovedBlogs />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/rejected-blogs"
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <RejectedBlogs />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/manage-users"
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <ManageUsers />
                     </ProtectedRoute>
                   }
                 />

@@ -113,12 +113,27 @@ export default function SignupForm() {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signUp(email, password, name, role);
+    const { error, data } = await signUp(email, password, name, role);
 
     if (error) {
       toast.error(error.message);
       setLoading(false);
     } else {
+      // Notify Admins
+      try {
+        const { data: admins } = await supabase.from('users').select('id').eq('role', 'admin');
+        if (admins) {
+          const adminNotifications = admins.map(admin => ({
+            user_id: admin.id,
+            message: `New ${role} registered: ${name}`,
+            type: 'info'
+          }));
+          await supabase.from('notifications').insert(adminNotifications);
+        }
+      } catch (err) {
+        console.error('Failed to notify admins of signup:', err);
+      }
+
       setLoading(false);
       setSuccess(true);
       toast.success('Check your email to confirm registration!');

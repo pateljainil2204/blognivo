@@ -99,6 +99,13 @@ export default function AuthorProfile() {
         setIsFollowing(true);
         setStats(prev => ({ ...prev, followers: prev.followers + 1 }));
         toast.success(`Now following ${activeProfile?.name}`);
+
+        // Notify Author
+        await supabase.from('notifications').insert({
+          user_id: targetId,
+          message: `${currentProfile?.name || currentUser?.email?.split('@')[0]} started following you!`,
+          type: 'follow'
+        });
       }
     } catch (err) {
       toast.error('Action failed');
