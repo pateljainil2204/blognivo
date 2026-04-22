@@ -5,6 +5,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import ErrorBoundary from './components/layout/ErrorBoundary';
+import { AnalyticsProvider } from './context/AnalyticsContext';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -33,11 +34,12 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <div className="min-h-screen flex flex-col bg-slate-950 bg-gradient-to-br from-slate-950 via-indigo-950/20 to-slate-950 text-white">
-          <Navbar />
-          <main className="flex-1 relative z-10">
-            <ErrorBoundary>
-              <Routes>
+        <AnalyticsProvider>
+          <div className="min-h-screen flex flex-col bg-slate-950 bg-gradient-to-br from-slate-950 via-indigo-950/20 to-slate-950 text-white">
+            <Navbar />
+            <main className="flex-1 relative z-10">
+              <ErrorBoundary>
+                <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/blogs" element={<Blogs />} />
                 <Route path="/login" element={<Login />} />
@@ -196,10 +198,11 @@ export default function App() {
                 <Route path="*" element={<Home />} />
               </Routes>
             </ErrorBoundary>
-          </main>
-          <Footer />
-        </div>
-        <Toaster position="bottom-right" />
+            </main>
+            <Footer />
+          </div>
+          <Toaster position="bottom-right" />
+        </AnalyticsProvider>
       </AuthProvider>
     </BrowserRouter>
   );

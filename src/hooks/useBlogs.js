@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+import { useAnalytics } from '../context/AnalyticsContext';
 
 /**
  * useBlogs Hook
@@ -10,6 +11,7 @@ export const useBlogs = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { updateOptimisticStats } = useAnalytics();
 
   const fetchBlogs = useCallback(async (options = {}) => {
     setLoading(true);
@@ -62,6 +64,7 @@ export const useBlogs = () => {
           });
         }
       }
+      if (updateOptimisticStats) updateOptimisticStats('like', { isAdded: !isLiked, blogId });
       return true;
     } catch (err) {
       toast.error('Action failed');
@@ -94,6 +97,7 @@ export const useBlogs = () => {
           });
         }
       }
+      if (updateOptimisticStats) updateOptimisticStats('bookmark', { isAdded: !isBookmarked, blogId });
       return true;
     } catch (err) {
       toast.error('Action failed');

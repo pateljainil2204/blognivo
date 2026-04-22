@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useAnalytics } from '../context/AnalyticsContext';
 import { 
   Eye, Heart, PenSquare, Clock, Award, 
   Users, TrendingUp, Sparkles, Activity,
@@ -13,83 +14,15 @@ import toast from 'react-hot-toast';
 
 export default function AuthorDashboard() {
   const { user, profile } = useAuth();
-  const [blogs, setBlogs] = useState([]);
-  const [stats, setStats] = useState({ 
-    totalViews: 0, 
-    totalLikes: 0, 
-    totalFollowers: 0, 
-    totalBookmarks: 0,
-    growth: { views: 18.5, engagement: 8.2, followers: 12 },
-    categoryStats: [],
-    recentActivity: [],
-    bestPerformers: { views: null, likes: null }
-  });
-  const [loading, setLoading] = useState(true);
-
-  const fetchData = useCallback(async (silent = false) => {
-    if (!user) return;
-    if (!silent) setLoading(true);
-    try {
-      const { data: blogsData } = await supabase
-        .from('blogs')
-        .select('*')
-        .eq('author_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      const allBlogs = blogsData || [];
-      const approvedBlogs = allBlogs.filter(b => b.status === 'approved');
-      setBlogs(allBlogs);
-
-      const blogIds = allBlogs.map(b => b.id);
-
-      const [likeRes, followerRes, bookmarkRes] = await Promise.all([
-        blogIds.length > 0
-          ? supabase.from('likes').select('*, blogs(title), users(name)').in('blog_id', blogIds).order('created_at', { ascending: false }).limit(10)
-          : Promise.resolve({ data: [] }),
-        supabase.from('follows').select('*, users!follows_follower_id_fkey(name)').eq('following_id', user.id).order('created_at', { ascending: false }).limit(10),
-        blogIds.length > 0
-          ? supabase.from('bookmarks').select('*, blogs(title), users(name)').in('blog_id', blogIds).order('created_at', { ascending: false }).limit(10)
-          : Promise.resolve({ data: [] })
-      ]);
-
-      const bestViews = approvedBlogs.length > 0 ? [...approvedBlogs].sort((a, b) => (b.views || 0) - (a.views || 0))[0] : null;
-      const bestLikes = approvedBlogs.length > 0 ? [...approvedBlogs].sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))[0] : null;
-
-      const catMap = {};
-      approvedBlogs.forEach(blog => {
-        const cat = blog.category || 'General';
-        if (!catMap[cat]) catMap[cat] = { name: cat, views: 0, count: 0 };
-        catMap[cat].views += (blog.views || 0);
-        catMap[cat].count += 1;
-      });
-      
-      const activityFeed = [
-        ...(likeRes.data || []).map(l => ({ type: 'like', user: l.users?.name, target: l.blogs?.title, date: l.created_at })),
-        ...(bookmarkRes.data || []).map(b => ({ type: 'bookmark', user: b.users?.name, target: b.blogs?.title, date: b.created_at })),
-        ...(followerRes.data || []).map(f => ({ type: 'follow', user: f.users?.name, target: 'you', date: f.created_at }))
-      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 6);
-
-      setStats({
-        totalViews: allBlogs.reduce((sum, b) => sum + (b.views || 0), 0),
-        totalLikes: approvedBlogs.reduce((sum, b) => sum + (b.likes_count || 0), 0),
-        totalFollowers: followerRes.data?.length || 0,
-        totalBookmarks: bookmarkRes.data?.length || 0,
-        growth: { views: 18.5, engagement: 8.2, followers: 12 },
-        categoryStats: Object.values(catMap).sort((a, b) => b.views - a.views),
-        recentActivity: activityFeed,
-        bestPerformers: { views: bestViews, likes: bestLikes }
-      });
-
-    } catch (err) {
-      console.error('Error fetching dashboard stats:', err);
-      if (!silent) toast.error('Failed to load performance data');
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, [user]);
+  const { authorStats, fetchAuthorStats } = useAnalytics();
+  
+  const { 
+    blogs, totalViews, totalLikes, totalFollowers, totalBookmarks, 
+    categoryStats, recentActivity, bestPerformers, loading 
+  } = authorStats;
 
   useEffect(() => {
-    fetchData();
+    fetchAuthorStats();
 
     // Set up Real-time subscription for dashboard updates
     if (user?.id) {
@@ -107,7 +40,7 @@ export default function AuthorDashboard() {
             const types = ['like', 'bookmark', 'follow'];
             if (types.includes(payload.new.type)) {
               // Trigger a silent refresh to update counters and activity list
-              fetchData(true);
+              fetchAuthorStats(true);
             }
           }
         )
@@ -117,7 +50,11 @@ export default function AuthorDashboard() {
         supabase.removeChannel(channel);
       };
     }
-  }, [user?.id, fetchData]);
+  }, [user?.id, fetchAuthorStats]);
+
+  const engagementRate = blogs.length > 0 
+    ? ((totalLikes + totalBookmarks) / blogs.length).toFixed(1)
+    : '0';
 
   const calculateHealth = (blog) => {
     if (!blog?.views || blog.views === 0) return 0;
@@ -167,15 +104,15 @@ export default function AuthorDashboard() {
           <h2 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Core Performance</h2>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div>
-              <h1 className="text-5xl font-black text-white tracking-tighter mb-2">{stats.totalViews.toLocaleString()}</h1>
+              <h1 className="text-5xl font-black text-white tracking-tighter mb-2">{totalViews.toLocaleString()}</h1>
               <p className="text-sm font-bold text-gray-400 flex items-center gap-2">
-                Total Content Reach <span className="text-emerald-400 flex items-center gap-1 font-black"><ArrowUpRight size={14} /> {stats.growth.views}%</span>
+                Total Content Reach
               </p>
             </div>
             <div className="max-w-xs">
               <div className="p-4 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
                  <p className="text-xs text-gray-300 font-medium leading-relaxed">
-                   Your writing influence is up <span className="text-white font-black">{stats.growth.engagement}%</span> this week. "Technical" topics are your strongest conversion driver.
+                   Your engagement rate per blog is <span className="text-white font-black">{engagementRate}</span> interactions.
                  </p>
               </div>
             </div>
@@ -226,17 +163,20 @@ export default function AuthorDashboard() {
              <div className="p-8 bg-white/5 rounded-3xl border border-white/10">
                 <h3 className="text-sm font-black text-white mb-6 uppercase tracking-widest">Category Distribution</h3>
                 <div className="space-y-5">
-                   {stats.categoryStats.slice(0, 4).map((cat, i) => (
+                   {categoryStats.slice(0, 4).map((cat, i) => (
                      <div key={i}>
                         <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-2">
                            <span className="text-gray-400">{cat.name}</span>
-                           <span className="text-white">{cat.views.toLocaleString()}</span>
+                           <span className="text-white">{cat.percentage}% ({cat.count})</span>
                         </div>
                         <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                           <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(cat.views / (stats.totalViews || 1)) * 100}%` }} />
+                           <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${cat.percentage}%` }} />
                         </div>
                      </div>
                    ))}
+                   {categoryStats.length === 0 && (
+                     <p className="text-gray-500 text-sm">No data available yet.</p>
+                   )}
                 </div>
              </div>
              
@@ -272,7 +212,7 @@ export default function AuthorDashboard() {
                  </h3>
               </div>
               <div className="divide-y divide-white/5">
-                 {stats.recentActivity.map((activity, i) => (
+                 {recentActivity.map((activity, i) => (
                    <div key={i} className="p-5 flex gap-4 group">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs ${
                         activity.type === 'like' ? 'bg-pink-500/10 text-pink-400' : 
@@ -289,19 +229,19 @@ export default function AuthorDashboard() {
                       </div>
                    </div>
                  ))}
-                 {stats.recentActivity.length === 0 && (
+                 {recentActivity.length === 0 && (
                    <p className="p-10 text-center text-xs text-gray-500 italic">No recent activity.</p>
                  )}
               </div>
            </section>
 
            {/* HEALTH SCORE COMPACT */}
-           {stats.bestPerformers.views && (
+           {bestPerformers.views && (
              <div className="p-8 bg-indigo-600 rounded-3xl text-white shadow-xl relative overflow-hidden group">
                 <Award className="absolute -bottom-2 -left-2 text-indigo-400 opacity-20" size={100} />
                 <div className="relative z-10 flex flex-col items-center text-center">
                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-4">Content Quality Score</p>
-                   <div className="text-5xl font-black mb-2 tracking-tighter">{calculateHealth(stats.bestPerformers.views)}<span className="text-xl text-indigo-200">/100</span></div>
+                   <div className="text-5xl font-black mb-2 tracking-tighter">{calculateHealth(bestPerformers.views)}<span className="text-xl text-indigo-200">/100</span></div>
                    <p className="text-xs font-bold text-indigo-100">Performance Status: <span className="text-white">Elite</span></p>
                 </div>
              </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useAnalytics } from '../context/AnalyticsContext';
 import { 
   Shield, Users, BarChart2, CheckCircle, 
   TrendingUp, Activity, Sparkles, Tag, Award, XCircle,
@@ -9,48 +10,12 @@ import {
 
 export default function AdminDashboard() {
   const { user, isAdmin } = useAuth();
-  const [statsLoading, setStatsLoading] = useState(true);
-  const [platformStats, setPlatformStats] = useState({
-    totalUsers: 0,
-    totalBlogs: 0,
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-    activeAuthors: 0,
-  });
+  const { adminStats } = useAnalytics();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (isAdmin) {
-      fetchPlatformStats();
-      setTimeout(() => setIsVisible(true), 100);
-    }
+    if (isAdmin) setTimeout(() => setIsVisible(true), 100);
   }, [isAdmin]);
-
-  const fetchPlatformStats = async () => {
-    if (!isAdmin) return;
-    setStatsLoading(true);
-    const [usersRes, pendingRes, approvedRes, rejectedRes, authorsRes] = await Promise.all([
-      supabase.from('users').select('*', { count: 'exact', head: true }),
-      supabase.from('blogs').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      supabase.from('blogs').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
-      supabase.from('blogs').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
-      supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'author'),
-    ]);
-
-    const totalBlogs = (pendingRes.count || 0) + (approvedRes.count || 0) + (rejectedRes.count || 0);
-
-    setPlatformStats({
-      totalUsers: usersRes.count || 0,
-      totalBlogs,
-      pending: pendingRes.count || 0,
-      approved: approvedRes.count || 0,
-      rejected: rejectedRes.count || 0,
-      activeAuthors: authorsRes.count || 0,
-    });
-    setStatsLoading(false);
-  };
-
 
   if (!user || !isAdmin) {
     return (
@@ -62,13 +27,25 @@ export default function AdminDashboard() {
     );
   }
 
-  const approvalRate = platformStats.totalBlogs > 0 
-    ? Math.round((platformStats.approved / platformStats.totalBlogs) * 100) 
+  const approvalRate = adminStats.totalBlogs > 0 
+    ? Math.round((adminStats.approved / adminStats.totalBlogs) * 100) 
     : 0;
   
-  const rejectionRate = platformStats.totalBlogs > 0 
-    ? Math.round((platformStats.rejected / platformStats.totalBlogs) * 100) 
+  const rejectionRate = adminStats.totalBlogs > 0 
+    ? Math.round((adminStats.rejected / adminStats.totalBlogs) * 100) 
     : 0;
+
+  const engagementRate = adminStats.totalBlogs > 0 
+    ? ((adminStats.totalLikes + adminStats.totalBookmarks) / adminStats.totalBlogs).toFixed(1) 
+    : '0';
+
+  if (adminStats.loading) {
+    return (
+      <div className="max-w-6xl mx-auto px-6 py-12 animate-pulse space-y-6 min-h-[60vh]">
+        <div className="h-64 bg-white/5 rounded-3xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12 relative animate-in fade-in duration-1000">
@@ -84,10 +61,10 @@ export default function AdminDashboard() {
         {/* SECTION 1: OVERVIEW CARDS (Equal size row) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
           {[
-            { label: 'Total Users', value: platformStats.totalUsers, icon: Users, color: 'text-indigo-400' },
-            { label: 'Total Blogs', value: platformStats.totalBlogs, icon: BarChart2, color: 'text-cyan-400' },
-            { label: 'Active Authors', value: platformStats.activeAuthors, icon: Sparkles, color: 'text-purple-400' },
-            { label: 'Engagement Rate', value: '74.2%', icon: Activity, color: 'text-emerald-400' },
+            { label: 'Total Users', value: adminStats.totalUsers, icon: Users, color: 'text-indigo-400' },
+            { label: 'Total Blogs', value: adminStats.totalBlogs, icon: BarChart2, color: 'text-cyan-400' },
+            { label: 'Active Authors', value: adminStats.activeAuthors, icon: Sparkles, color: 'text-purple-400' },
+            { label: 'Engagement Rate', value: `${engagementRate}`, icon: Activity, color: 'text-emerald-400' },
           ].map((stat, i) => (
             <div key={i} className="bg-white/5 p-8 rounded-2xl border border-white/5 hover:bg-white/[0.07] transition-all flex flex-col items-center text-center group">
               <div className={`p-3 bg-white/5 rounded-xl ${stat.color} mb-4 group-hover:scale-110 transition-transform`}>
@@ -95,7 +72,7 @@ export default function AdminDashboard() {
               </div>
               <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">{stat.label}</p>
               <h4 className="text-3xl font-black text-white tracking-tighter tabular-nums">
-                {statsLoading ? '...' : stat.value}
+                {stat.value}
               </h4>
             </div>
           ))}
@@ -131,13 +108,34 @@ export default function AdminDashboard() {
         <div className="grid lg:grid-cols-10 gap-6">
           
 
-          {/* SECTION 4: QUICK SNAPSHOT (Compact) */}
-          <div className="lg:col-span-10 space-y-6">
+          <div className="lg:col-span-6 space-y-6">
+             <div className="bg-white/5 p-8 rounded-[2rem] border border-white/5 group hover:bg-white/[0.07] transition-all h-full">
+                <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-6">Global Category Distribution</h3>
+                <div className="space-y-6">
+                   {adminStats.globalCategoryDistribution.slice(0, 5).map((cat, i) => (
+                      <div key={i}>
+                         <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-2">
+                            <span className="text-gray-400">{cat.name}</span>
+                            <span className="text-white">{cat.percentage}% ({cat.count})</span>
+                         </div>
+                         <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${cat.percentage}%` }} />
+                         </div>
+                      </div>
+                   ))}
+                   {adminStats.globalCategoryDistribution.length === 0 && (
+                     <p className="text-gray-500 text-sm">No data available yet.</p>
+                   )}
+                </div>
+             </div>
+          </div>
+
+          <div className="lg:col-span-4 space-y-6">
              <div className="bg-white/5 p-8 rounded-[2rem] border border-white/5 group hover:bg-white/[0.07] transition-all">
                 <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-6">Administrative Snapshot</h3>
                 <div className="space-y-6">
                    {[
-                     { label: 'Pending Requests', value: platformStats.pending, color: platformStats.pending > 0 ? 'text-amber-400' : 'text-gray-500' },
+                     { label: 'Pending Requests', value: adminStats.pending, color: adminStats.pending > 0 ? 'text-amber-400' : 'text-gray-500' },
                      { label: 'Approval Rate', value: approvalRate + '%', color: 'text-emerald-400' },
                      { label: 'Rejection Rate', value: rejectionRate + '%', color: 'text-red-400' },
                    ].map((item, i) => (
@@ -147,19 +145,14 @@ export default function AdminDashboard() {
                       </div>
                    ))}
                 </div>
-                <div className="mt-8 pt-6 border-t border-white/5">
-                   <p className="text-[10px] text-gray-600 font-medium leading-relaxed">
-                     Process the <span className="text-white">pending queue</span> to maintain platform content flow.
-                   </p>
-                </div>
              </div>
 
              <div className="p-8 bg-indigo-600 rounded-[2rem] text-white shadow-xl relative overflow-hidden group">
                 <Zap className="absolute -bottom-4 -left-4 text-indigo-400 opacity-20" size={100} />
                 <div className="relative z-10 text-center">
-                   <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-2">Growth Trend</p>
-                   <h4 className="text-4xl font-black tracking-tighter mb-4">Positive</h4>
-                   <p className="text-xs font-bold text-indigo-100">Stability Index: <span className="text-white">Optimal</span></p>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-2">User Growth Trend</p>
+                   <h4 className="text-4xl font-black tracking-tighter mb-4">Steady</h4>
+                   <p className="text-xs font-bold text-indigo-100">Registrations: <span className="text-white">+{adminStats.totalUsers} Total</span></p>
                 </div>
              </div>
           </div>
