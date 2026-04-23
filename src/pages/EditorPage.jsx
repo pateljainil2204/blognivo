@@ -54,8 +54,25 @@ export default function EditorPage() {
   }, [title, content, category, tags, id]);
 
   const fetchCategories = async () => {
-    const { data } = await supabase.from('categories').select('name');
-    if (data) setCategories(data.map(c => c.name));
+    try {
+      // Fetch predefined categories
+      const { data: predefined } = await supabase.from('categories').select('name');
+      
+      // Fetch unique categories from approved blogs to suggest trending topics
+      const { data: custom } = await supabase
+        .from('blogs')
+        .select('category')
+        .eq('status', 'approved');
+
+      const allCategories = new Set([
+        ...(predefined?.map(c => c.name) || []),
+        ...(custom?.map(c => c.category).filter(Boolean) || [])
+      ]);
+      
+      setCategories(Array.from(allCategories).sort());
+    } catch (err) {
+      console.error('Failed to fetch categories:', err);
+    }
   };
 
   const fetchBlog = async () => {

@@ -1,4 +1,5 @@
-import { Image, X, Hash, Loader2, Save, Send } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Image, X, Hash, Loader2, Save, Send, Search, Plus, Check, ChevronDown } from 'lucide-react';
 import AIToolbar from '../ai/AIToolbar';
 
 export default function BlogEditor({
@@ -11,6 +12,50 @@ export default function BlogEditor({
   saving, onSave, onPublish,
   isResubmit = false,
 }) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isCustom, setIsCustom] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Initialize isCustom based on current category
+  useEffect(() => {
+    if (category && categories.length > 0) {
+      setIsCustom(!categories.includes(category));
+    }
+  }, [category, categories]);
+
+  const filteredCategories = categories.filter(c => 
+    c.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const showCreateOption = searchQuery && !categories.some(c => c.toLowerCase() === searchQuery.toLowerCase());
+
+  const handleSelect = (val) => {
+    setCategory(val);
+    setSearchQuery('');
+    setIsDropdownOpen(false);
+    setIsCustom(false);
+  };
+
+  const handleCreateNew = () => {
+    if (searchQuery) {
+      setCategory(searchQuery);
+      setSearchQuery('');
+      setIsDropdownOpen(false);
+      setIsCustom(true);
+    }
+  };
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* Cover Image */}
@@ -60,19 +105,75 @@ export default function BlogEditor({
         <div className="grid md:grid-cols-2 gap-8 items-start">
           <div className="space-y-3">
             <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] block ml-1">Topic Category</label>
-            <div className="relative group/select">
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-5 py-3.5 text-gray-300 font-bold outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/30 transition-all appearance-none cursor-pointer"
+            <div className="relative" ref={dropdownRef}>
+              <div 
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-3.5 text-gray-300 font-bold outline-none focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500/30 transition-all cursor-pointer flex items-center justify-between group/select"
               >
-                {categories.map((c) => (
-                  <option key={c} value={c} className="bg-slate-900 text-gray-200">{c}</option>
-                ))}
-              </select>
-              <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-600 transition-colors group-hover/select:text-indigo-400">
-                <X size={16} className="rotate-45" />
+                <div className="flex items-center gap-2 overflow-hidden">
+                  {isCustom && <span className="bg-indigo-500/20 text-indigo-400 text-[8px] px-1.5 py-0.5 rounded uppercase font-black tracking-tighter shrink-0">Custom</span>}
+                  <span className="truncate">{category || 'Select a topic'}</span>
+                </div>
+                <ChevronDown size={18} className={`text-gray-500 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
               </div>
+
+              {/* Dropdown Menu */}
+              {isDropdownOpen && (
+                <div className="absolute z-[60] mt-3 w-full bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
+                  <div className="p-3 border-b border-white/5">
+                    <div className="relative">
+                      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                      <input
+                        type="text"
+                        placeholder="Search or create topic..."
+                        autoFocus
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && showCreateOption) {
+                            handleCreateNew();
+                          }
+                        }}
+                        className="w-full bg-white/5 border border-white/5 rounded-xl pl-9 pr-4 py-2 text-sm text-white placeholder:text-gray-600 outline-none focus:border-indigo-500/30 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto custom-scrollbar p-1">
+                    {filteredCategories.length > 0 ? (
+                      filteredCategories.map((c) => (
+                        <button
+                          key={c}
+                          onClick={() => handleSelect(c)}
+                          className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all group/item"
+                        >
+                          <span>{c}</span>
+                          {category === c && <Check size={14} className="text-indigo-400" />}
+                        </button>
+                      ))
+                    ) : !showCreateOption && (
+                      <div className="px-4 py-8 text-center text-xs text-gray-600 font-bold uppercase tracking-widest">
+                        No topics found
+                      </div>
+                    )}
+
+                    {showCreateOption && (
+                      <button
+                        onClick={handleCreateNew}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-indigo-400 hover:bg-indigo-500/10 transition-all border border-indigo-500/10 m-1 w-[calc(100%-8px)]"
+                      >
+                        <div className="p-1.5 bg-indigo-500/20 rounded-lg">
+                          <Plus size={14} strokeWidth={3} />
+                        </div>
+                        <div className="text-left overflow-hidden">
+                          <p className="text-[10px] text-indigo-400/50 uppercase tracking-widest font-black leading-none mb-1">Create Topic</p>
+                          <p className="truncate">"{searchQuery}"</p>
+                        </div>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
