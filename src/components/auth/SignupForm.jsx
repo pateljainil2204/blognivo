@@ -1,51 +1,52 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { Mail, Lock, User, Loader2, ArrowRight, CheckCircle } from 'lucide-react';
+import { Mail, Lock, User, Loader2, ArrowRight, CheckCircle, Eye, EyeOff, BookOpen, PenTool } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { supabase } from '../../lib/supabase';
+import { Link } from 'react-router-dom';
 
-// ─── Floating Label Input ──────────────────────────────────────────────────
-function FloatingInput({ id, type, label, value, onChange, icon: Icon, required }) {
+// ─── Premium Input Component ───────────────────────────────────────────────
+function FormInput({ id, type, label, value, onChange, icon: Icon, required, rightIcon: RightIcon, onRightIconClick, placeholder }) {
   return (
-    <div className="relative group">
-      {/* Icon */}
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-gray-500 group-focus-within:text-indigo-400 transition-colors duration-300 pointer-events-none">
-        <Icon size={18} />
-      </div>
-
-      {/* Input */}
-      <input
-        id={id}
-        type={type}
-        required={required}
-        placeholder=" "
-        value={value}
-        onChange={onChange}
-        className="
-          peer w-full bg-white/5 border border-white/10 rounded-xl
-          px-4 pt-5 pb-2.5 pl-12
-          focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500
-          focus:scale-[1.01] focus:shadow-lg focus:shadow-indigo-500/10
-          outline-none transition-all duration-300 ease-in-out
-          text-white placeholder-transparent
-          text-sm
-        "
-      />
-
-      {/* Floating Label */}
-      <label
-        htmlFor={id}
-        className="
-          absolute left-12 top-3.5
-          text-gray-400 text-sm
-          transition-all duration-300 ease-in-out
-          pointer-events-none
-          peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-500
-          peer-focus:top-1 peer-focus:text-[10px] peer-focus:text-indigo-400 peer-focus:font-bold peer-focus:tracking-wide
-          peer-not-placeholder-shown:top-1 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:text-indigo-400/70 peer-not-placeholder-shown:font-bold peer-not-placeholder-shown:tracking-wide
-        "
-      >
+    <div className="space-y-1 shrink-0">
+      <label htmlFor={id} className="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] ml-1">
         {label}
       </label>
+      <div className="relative group">
+        {/* Left Icon */}
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-gray-500 group-focus-within:text-purple-400 transition-colors duration-300 pointer-events-none">
+          <Icon size={18} />
+        </div>
+
+        {/* Input */}
+        <input
+          id={id}
+          type={type}
+          required={required}
+          value={value}
+          onChange={onChange}
+          className="
+            w-full h-10 bg-white/5 border border-white/10 rounded-lg
+            px-4 pl-12 pr-12
+            focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500
+            outline-none transition-all duration-300
+            text-white placeholder-gray-600
+            text-sm font-medium
+          "
+          placeholder={placeholder || `Enter your ${label.toLowerCase()}`}
+        />
+
+        {/* Right Icon (Toggle Password) */}
+        {RightIcon && (
+          <button
+            type="button"
+            onClick={onRightIconClick}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-gray-500 hover:text-white transition-colors duration-300"
+          >
+            <RightIcon size={18} />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -54,47 +55,46 @@ function FloatingInput({ id, type, label, value, onChange, icon: Icon, required 
 const ROLES = [
   {
     key: 'user',
-    icon: '👤',
+    icon: BookOpen,
     title: 'Reader',
     desc: 'Explore & discover',
   },
   {
     key: 'author',
-    icon: '✍️',
+    icon: PenTool,
     title: 'Author',
     desc: 'Write & publish',
   },
 ];
 
-function RoleCard({ role, value, selectedRole, onSelect }) {
-  const isSelected = selectedRole === value;
+function RoleCard({ role, selectedRole, onSelect }) {
+  const isSelected = selectedRole === role.key;
+  const Icon = role.icon;
+  
   return (
     <button
       type="button"
-      onClick={() => onSelect(value)}
-      aria-pressed={isSelected}
+      onClick={() => onSelect(role.key)}
       className={`
-        relative flex flex-col items-center justify-center gap-1.5
-        border rounded-xl p-4 cursor-pointer
-        transition-all duration-300 ease-in-out
-        hover:scale-[1.03] hover:shadow-lg
-        focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500
-        ${isSelected
-          ? 'border-indigo-500 bg-indigo-500/20 scale-[1.04] shadow-lg shadow-indigo-500/20 text-white'
-          : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20 hover:text-white hover:shadow-indigo-500/10'
+        relative flex flex-col items-center justify-center p-2 gap-1
+        border rounded-xl transition-all duration-300 group
+        ${isSelected 
+          ? 'border-purple-500 bg-purple-500/10 shadow-[0_0_15px_rgba(168,85,247,0.3)]' 
+          : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
         }
       `}
     >
-      {/* Selection ring pulse */}
+      <div className={`p-2 rounded-lg transition-colors duration-300 ${isSelected ? 'bg-purple-500 text-white' : 'bg-white/5 text-gray-500 group-hover:text-gray-300'}`}>
+        <Icon size={20} />
+      </div>
+      <div className="text-center">
+        <p className={`text-sm font-bold ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`}>{role.title}</p>
+        <p className="text-[10px] text-gray-500 font-medium">{role.desc}</p>
+      </div>
+      
       {isSelected && (
-        <div className="absolute inset-0 rounded-xl ring-2 ring-indigo-500/60 animate-ping-once pointer-events-none" />
+        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div>
       )}
-
-      <span className="text-2xl leading-none">{role.icon}</span>
-      <span className="text-sm font-black tracking-tight">{role.title}</span>
-      <span className={`text-[10px] font-medium transition-colors duration-300 ${isSelected ? 'text-indigo-300' : 'text-gray-600'}`}>
-        {role.desc}
-      </span>
     </button>
   );
 }
@@ -103,17 +103,25 @@ function RoleCard({ role, value, selectedRole, onSelect }) {
 export default function SignupForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState('user');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const { signUp } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
     setLoading(true);
 
-    const { error, data } = await signUp(email, password, name, role);
+    const { error } = await signUp(email, password, name, role);
 
     if (error) {
       toast.error(error.message);
@@ -140,41 +148,26 @@ export default function SignupForm() {
     }
   };
 
-  // ── Success Feedback ────────────────────────────────────────────────────
   if (success) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 gap-5 animate-scale-in">
+      <div className="flex flex-col items-center justify-center py-8 gap-5 animate-scale-in text-center">
         <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center ring-2 ring-emerald-500/40">
           <CheckCircle size={32} className="text-emerald-400" />
         </div>
-        <div className="text-center">
+        <div>
           <p className="text-white font-black text-xl">Account Created!</p>
           <p className="text-gray-400 text-sm mt-2 max-w-xs leading-relaxed">
-            A confirmation link has been sent to{' '}
-            <span className="text-indigo-400 font-bold">{email}</span>.
-            Check your inbox to get started.
+            A confirmation link has been sent to <span className="text-purple-400 font-bold">{email}</span>.
           </p>
-        </div>
-        <div className="flex gap-1 mt-1">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce"
-              style={{ animationDelay: `${i * 0.15}s` }}
-            />
-          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-4 transition-all duration-500 ease-in-out"
-    >
+    <form onSubmit={handleSubmit} className="space-y-3 flex flex-col shrink-0">
       {/* Full Name */}
-      <FloatingInput
+      <FormInput
         id="signup-name"
         type="text"
         label="Full Name"
@@ -182,10 +175,11 @@ export default function SignupForm() {
         onChange={(e) => setName(e.target.value)}
         icon={User}
         required
+        placeholder="Your name"
       />
 
       {/* Email */}
-      <FloatingInput
+      <FormInput
         id="signup-email"
         type="email"
         label="Email Address"
@@ -193,30 +187,45 @@ export default function SignupForm() {
         onChange={(e) => setEmail(e.target.value)}
         icon={Mail}
         required
+        placeholder="name@example.com"
       />
 
       {/* Password */}
-      <FloatingInput
+      <FormInput
         id="signup-password"
-        type="password"
+        type={showPassword ? 'text' : 'password'}
         label="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         icon={Lock}
         required
+        rightIcon={showPassword ? EyeOff : Eye}
+        onRightIconClick={() => setShowPassword(!showPassword)}
+        placeholder="Min. 8 characters"
+      />
+
+      {/* Confirm Password */}
+      <FormInput
+        id="signup-confirm-password"
+        type={showPassword ? 'text' : 'password'}
+        label="Confirm Password"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        icon={Lock}
+        required
+        placeholder="Repeat password"
       />
 
       {/* Role Selection */}
-      <div className="space-y-2 pt-1">
-        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">
+      <div className="space-y-1 shrink-0">
+        <label className="text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] ml-1">
           Register As
         </label>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           {ROLES.map((r) => (
             <RoleCard
               key={r.key}
               role={r}
-              value={r.key}
               selectedRole={role}
               onSelect={setRole}
             />
@@ -229,31 +238,42 @@ export default function SignupForm() {
         type="submit"
         disabled={loading}
         className="
-          w-full bg-gradient-to-r from-indigo-500 to-purple-500
-          text-white font-bold py-3.5 rounded-xl
-          shadow-lg shadow-indigo-500/20
-          hover:shadow-indigo-500/40 hover:scale-[1.02]
-          active:scale-[0.97]
-          transition-all duration-300 ease-in-out
+          w-full h-11 bg-gradient-to-r from-purple-600 to-violet-600
+          text-white text-sm font-bold rounded-xl
+          shadow-lg shadow-purple-500/30
+          hover:shadow-purple-500/50 hover:scale-105
+          active:scale-[0.98]
+          transition-all duration-300
           flex items-center justify-center gap-2 group
           disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100
-          mt-2
+          mt-3
         "
       >
         {loading ? (
           <>
             <Loader2 className="animate-spin" size={20} />
-            <span>Creating account…</span>
+            <span>Creating account...</span>
           </>
         ) : (
           <>
-            Create Account
+            <span>Create Account</span>
             <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
           </>
         )}
       </button>
 
+      {/* Terms Footer */}
+      <p className="text-[10px] text-center text-gray-600 font-medium mt-2">
+        By signing up you agree to our <Link to="/terms" className="text-gray-400 hover:text-white underline">Terms</Link> and <Link to="/privacy" className="text-gray-400 hover:text-white underline">Privacy Policy</Link>.
+      </p>
 
+      {/* Footer Text */}
+      <p className="text-center mt-3 text-sm text-gray-500 font-medium">
+        Already have an account?{' '}
+        <Link to="/login" className="text-purple-400 font-bold hover:text-purple-300 transition-all">
+          Sign in
+        </Link>
+      </p>
     </form>
   );
 }

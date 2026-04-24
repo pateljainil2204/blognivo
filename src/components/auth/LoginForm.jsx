@@ -1,51 +1,51 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { Mail, Lock, Loader2, ArrowRight, CheckCircle } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowRight, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-// ─── Floating Label Input ──────────────────────────────────────────────────
-function FloatingInput({ id, type, label, value, onChange, icon: Icon, required }) {
+// ─── Premium Input Component ───────────────────────────────────────────────
+function FormInput({ id, type, label, value, onChange, icon: Icon, required, rightIcon: RightIcon, onRightIconClick }) {
   return (
-    <div className="relative group">
-      {/* Icon */}
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-gray-500 group-focus-within:text-indigo-400 transition-colors duration-300 pointer-events-none">
-        <Icon size={18} />
-      </div>
-
-      {/* Input */}
-      <input
-        id={id}
-        type={type}
-        required={required}
-        placeholder=" "
-        value={value}
-        onChange={onChange}
-        className="
-          peer w-full bg-white/5 border border-white/10 rounded-xl
-          px-4 pt-5 pb-2.5 pl-12
-          focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500
-          focus:scale-[1.01] focus:shadow-lg focus:shadow-indigo-500/10
-          outline-none transition-all duration-300 ease-in-out
-          text-white placeholder-transparent
-          text-sm
-        "
-      />
-
-      {/* Floating Label */}
-      <label
-        htmlFor={id}
-        className="
-          absolute left-12 top-3.5
-          text-gray-400 text-sm
-          transition-all duration-300 ease-in-out
-          pointer-events-none
-          peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-500
-          peer-focus:top-1 peer-focus:text-[10px] peer-focus:text-indigo-400 peer-focus:font-bold peer-focus:tracking-wide
-          peer-not-placeholder-shown:top-1 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:text-indigo-400/70 peer-not-placeholder-shown:font-bold peer-not-placeholder-shown:tracking-wide
-        "
-      >
+    <div className="space-y-1 shrink-0">
+      <label htmlFor={id} className="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] ml-1">
         {label}
       </label>
+      <div className="relative group">
+        {/* Left Icon */}
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-gray-500 group-focus-within:text-purple-400 transition-colors duration-300 pointer-events-none">
+          <Icon size={18} />
+        </div>
+
+        {/* Input */}
+        <input
+          id={id}
+          type={type}
+          required={required}
+          value={value}
+          onChange={onChange}
+          className="
+            w-full h-10 bg-white/5 border border-white/10 rounded-lg
+            px-4 pl-12 pr-12
+            focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500
+            outline-none transition-all duration-300
+            text-white placeholder-gray-600
+            text-sm font-medium
+          "
+          placeholder={`Enter your ${label.toLowerCase()}`}
+        />
+
+        {/* Right Icon (Toggle Password) */}
+        {RightIcon && (
+          <button
+            type="button"
+            onClick={onRightIconClick}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-gray-500 hover:text-white transition-colors duration-300"
+          >
+            <RightIcon size={18} />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -54,6 +54,7 @@ function FloatingInput({ id, type, label, value, onChange, icon: Icon, required 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
@@ -69,40 +70,30 @@ export default function LoginForm() {
       toast.error(error.message);
       setLoading(false);
     } else {
-      // ── Success State ──
       setLoading(false);
       setSuccess(true);
       toast.success('Welcome back!');
 
-      // ── Redirect Overlay after 1.2s ──
       setTimeout(() => {
         setRedirecting(true);
-        // Auth hook / router will handle actual redirect via user state change
       }, 1200);
     }
   };
 
-  // ── Redirect Overlay ────────────────────────────────────────────────────
   if (redirecting) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 animate-fade-in">
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#020617] animate-fade-in">
         <div className="relative flex flex-col items-center gap-6">
-          {/* Animated ring */}
-          <div className="w-16 h-16 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-10 h-10 rounded-full bg-indigo-500/20 animate-pulse" />
-          </div>
-
+          <div className="w-16 h-16 rounded-full border-2 border-purple-500/30 border-t-purple-500 animate-spin" />
           <div className="text-center">
-            <p className="text-white font-bold text-lg">Loading Dashboard</p>
-            <p className="text-gray-400 text-sm mt-1">Preparing your workspace…</p>
+            <p className="text-white font-bold text-lg">Redirecting to Dashboard</p>
+            <p className="text-gray-400 text-sm mt-1">Getting things ready…</p>
           </div>
         </div>
       </div>
     );
   }
 
-  // ── Success Feedback ────────────────────────────────────────────────────
   if (success) {
     return (
       <div className="flex flex-col items-center justify-center py-8 gap-4 animate-scale-in">
@@ -113,26 +104,14 @@ export default function LoginForm() {
           <p className="text-white font-black text-xl">Login Successful</p>
           <p className="text-gray-400 text-sm mt-1">Redirecting you now…</p>
         </div>
-        <div className="flex gap-1 mt-2">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce"
-              style={{ animationDelay: `${i * 0.15}s` }}
-            />
-          ))}
-        </div>
       </div>
     );
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-5 transition-all duration-500 ease-in-out"
-    >
+    <form onSubmit={handleSubmit} className="space-y-3 flex flex-col shrink-0">
       {/* Email */}
-      <FloatingInput
+      <FormInput
         id="login-email"
         type="email"
         label="Email Address"
@@ -144,22 +123,24 @@ export default function LoginForm() {
 
       {/* Password */}
       <div className="space-y-1">
-        <FloatingInput
+        <FormInput
           id="login-password"
-          type="password"
+          type={showPassword ? 'text' : 'password'}
           label="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           icon={Lock}
           required
+          rightIcon={showPassword ? EyeOff : Eye}
+          onRightIconClick={() => setShowPassword(!showPassword)}
         />
         <div className="flex justify-end pr-1 pt-1">
-          <a
-            href="#"
-            className="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors duration-200"
+          <Link
+            to="/forgot-password"
+            className="text-[11px] font-bold text-purple-400 hover:text-purple-300 transition-colors duration-200"
           >
             Forgot password?
-          </a>
+          </Link>
         </div>
       </div>
 
@@ -168,31 +149,44 @@ export default function LoginForm() {
         type="submit"
         disabled={loading}
         className="
-          w-full bg-gradient-to-r from-indigo-500 to-purple-500
-          text-white font-bold py-3.5 rounded-xl
-          shadow-lg shadow-indigo-500/20
-          hover:shadow-indigo-500/40 hover:scale-[1.02]
-          active:scale-[0.97]
-          transition-all duration-300 ease-in-out
+          w-full h-11 bg-gradient-to-r from-purple-600 to-violet-600
+          text-white text-sm font-bold rounded-xl
+          shadow-lg shadow-purple-500/30
+          hover:shadow-purple-500/50 hover:scale-105
+          active:scale-[0.98]
+          transition-all duration-300
           flex items-center justify-center gap-2 group
           disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100
-          mt-2
+          mt-3
         "
       >
         {loading ? (
           <>
             <Loader2 className="animate-spin" size={20} />
-            <span>Signing in…</span>
+            <span>Verifying...</span>
           </>
         ) : (
           <>
-            Sign In to Dashboard
+            <span>Sign In to Dashboard</span>
             <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
           </>
         )}
       </button>
 
+      {/* Divider */}
+      <div className="relative flex items-center justify-center py-2">
+        <div className="flex-grow border-t border-white/5"></div>
+        <span className="flex-shrink mx-4 text-[10px] font-bold text-gray-600 uppercase tracking-widest">or</span>
+        <div className="flex-grow border-t border-white/5"></div>
+      </div>
 
+      {/* Footer Text moved inside card */}
+      <p className="text-center mt-2 text-sm text-gray-500 font-medium">
+        Don't have an account?{' '}
+        <Link to="/signup" className="text-purple-400 font-bold hover:text-purple-300 transition-all">
+          Create one
+        </Link>
+      </p>
     </form>
   );
 }

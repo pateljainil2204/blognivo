@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Suspense } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -6,6 +7,7 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import ErrorBoundary from './components/layout/ErrorBoundary';
 import { AnalyticsProvider } from './context/AnalyticsContext';
+import LoadingSpinner from './components/layout/LoadingSpinner';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -30,180 +32,207 @@ import AdminProfile from './pages/AdminProfile';
 import MyBlogs from './pages/MyBlogs';
 import Drafts from './pages/Drafts';
 
+function LayoutContent() {
+  const location = useLocation();
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+
+  if (isAuthPage) {
+    return (
+      <main className="h-screen w-full overflow-hidden bg-[#020617]">
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="*" element={<Login />} />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
+      </main>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-950 bg-gradient-to-br from-slate-950 via-indigo-950/20 to-slate-950 text-white">
+      <Navbar />
+      <main className="flex-1 relative z-10">
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/blogs" element={<Blogs />} />
+              <Route path="/blog/:id" element={<BlogPage />} />
+              
+              {/* Dynamic Public Profiles */}
+              <Route path="/profile/:id" element={<UserProfile />} />
+              <Route path="/author/:id" element={<AuthorProfile />} />
+              <Route path="/admin-profile/:id" element={<AdminProfile />} />
+
+              <Route
+                path="/editor"
+                element={
+                  <ProtectedRoute requiredRole="author">
+                    <EditorPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/editor/:id"
+                element={
+                  <ProtectedRoute requiredRole="author">
+                    <EditorPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardSwitcher />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <UserProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/author-profile"
+                element={
+                  <ProtectedRoute requiredRole="author">
+                    <AuthorProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my-blogs"
+                element={
+                  <ProtectedRoute requiredRole="author">
+                    <MyBlogs />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/drafts"
+                element={
+                  <ProtectedRoute requiredRole="author">
+                    <Drafts />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/followers"
+                element={
+                  <ProtectedRoute requiredRole="author">
+                    <Followers />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin-profile"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/pending-requests"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <PendingRequests />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/approved-blogs"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <ApprovedBlogs />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/rejected-blogs"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <RejectedBlogs />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/manage-users"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <ManageUsers />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/feed"
+                element={
+                  <ProtectedRoute>
+                    <Feed />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/saved"
+                element={
+                  <ProtectedRoute>
+                    <Saved />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/liked"
+                element={
+                  <ProtectedRoute>
+                    <Liked />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/following"
+                element={
+                  <ProtectedRoute>
+                    <Following />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<Home />} />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <AnalyticsProvider>
-          <div className="min-h-screen flex flex-col bg-slate-950 bg-gradient-to-br from-slate-950 via-indigo-950/20 to-slate-950 text-white">
-            <Navbar />
-            <main className="flex-1 relative z-10">
-              <ErrorBoundary>
-                <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/blogs" element={<Blogs />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/blog/:id" element={<BlogPage />} />
-                
-                {/* Dynamic Public Profiles */}
-                <Route path="/profile/:id" element={<UserProfile />} />
-                <Route path="/author/:id" element={<AuthorProfile />} />
-                <Route path="/admin-profile/:id" element={<AdminProfile />} />
-
-                <Route
-                  path="/editor"
-                  element={
-                    <ProtectedRoute requiredRole="author">
-                      <EditorPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/editor/:id"
-                  element={
-                    <ProtectedRoute requiredRole="author">
-                      <EditorPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardSwitcher />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <UserProfile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/author-profile"
-                  element={
-                    <ProtectedRoute requiredRole="author">
-                      <AuthorProfile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/my-blogs"
-                  element={
-                    <ProtectedRoute requiredRole="author">
-                      <MyBlogs />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/drafts"
-                  element={
-                    <ProtectedRoute requiredRole="author">
-                      <Drafts />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/followers"
-                  element={
-                    <ProtectedRoute requiredRole="author">
-                      <Followers />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin-profile"
-                  element={
-                    <ProtectedRoute requiredRole="admin">
-                      <AdminProfile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute requiredRole="admin">
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/pending-requests"
-                  element={
-                    <ProtectedRoute requiredRole="admin">
-                      <PendingRequests />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/approved-blogs"
-                  element={
-                    <ProtectedRoute requiredRole="admin">
-                      <ApprovedBlogs />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/rejected-blogs"
-                  element={
-                    <ProtectedRoute requiredRole="admin">
-                      <RejectedBlogs />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/manage-users"
-                  element={
-                    <ProtectedRoute requiredRole="admin">
-                      <ManageUsers />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/feed"
-                  element={
-                    <ProtectedRoute>
-                      <Feed />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/saved"
-                  element={
-                    <ProtectedRoute>
-                      <Saved />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/liked"
-                  element={
-                    <ProtectedRoute>
-                      <Liked />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/following"
-                  element={
-                    <ProtectedRoute>
-                      <Following />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="*" element={<Home />} />
-              </Routes>
-            </ErrorBoundary>
-            </main>
-            <Footer />
-          </div>
+          <LayoutContent />
           <Toaster position="bottom-right" />
         </AnalyticsProvider>
       </AuthProvider>
     </BrowserRouter>
   );
-}
+}
+
